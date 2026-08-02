@@ -1,8 +1,10 @@
 :root{
-  --glass-bg: rgba(255,255,255,0.55);
-  --glass-bg-soft: rgba(255,255,255,0.4);
-  --glass-border: rgba(255,255,255,0.6);
-  --glass-shadow: 0 8px 32px rgba(31,38,135,0.08);
+  --glass-bg: rgba(255,255,255,0.5);
+  --glass-bg-soft: rgba(255,255,255,0.38);
+  --glass-border: rgba(255,255,255,0.7);
+  --glass-shadow: 0 20px 50px rgba(31,38,135,0.10), 0 2px 8px rgba(31,38,135,0.06);
+  --glass-highlight: rgba(255,255,255,0.9);
+  --glass-blur: 28px;
   --ink: #16181d;
   --ink-soft: #6b7280;
   --ink-faint: #9ca3af;
@@ -11,6 +13,10 @@
   --page-bg-1: #eef0f4;
   --page-bg-2: #e4e7ef;
   --page-bg-3: #f3ede9;
+  --orb-1: #ffd9b8;
+  --orb-2: #c7d6fb;
+  --orb-3: #e3d6f7;
+  --orb-4: #cdeee2;
   --radius-lg: 24px;
   --radius-md: 16px;
   --radius-sm: 12px;
