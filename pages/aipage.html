@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Shop AI — AI Chat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/chat.css">
+</head>
+<body class="chat-body">
+
+<div class="app">
+
+  <!-- ================= HEADER ================= -->
+  <header class="top-bar">
+    <a class="logo" href="../index.html">Shop AI</a>
+    <div class="header-right">
+      <button class="icon-btn" id="menuBtn" aria-label="More options">⋯</button>
+      <div class="avatar" style="background-image:url('https://i.pravatar.cc/80?img=13')"></div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <main class="chat-main">
+
+    <!-- First-open empty state -->
+    <section class="empty-state" id="emptyState">
+      <div class="empty-inner">
+        <div class="brand-mark">✨</div>
+        <h1>Good afternoon, Dinesh</h1>
+        <p>What can I help you style today?</p>
+        <div class="suggestions">
+          <button class="suggestion" data-prompt="Suggest a college outfit under ₹3000">
+            <span class="s-icon">👔</span> College Outfit
+          </button>
+          <button class="suggestion" data-prompt="Analyze my outfit photo">
+            <span class="s-icon">🖼️</span> Analyze Photo
+          </button>
+          <button class="suggestion" data-prompt="Suggest a wedding function look">
+            <span class="s-icon">🤵</span> Wedding Look
+          </button>
+          <button class="suggestion" data-prompt="What's trending this week?">
+            <span class="s-icon">📈</span> Trending Styles
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conversation (empty until first message) -->
+    <div class="conversation" id="conversation"></div>
+
+  </main>
+
+  <!-- ================= COMPOSER ================= -->
+  <div class="composer-dock">
+    <div class="composer">
+      <button class="plus-btn" id="plusBtn" aria-label="Add">+</button>
+      <div class="upload-menu" id="uploadMenu">
+        <button class="upload-menu-item" data-action="upload-photo">📷 Upload Photo</button>
+        <button class="upload-menu-item" data-action="camera">📸 Camera</button>
+        <button class="upload-menu-item" data-action="paste-link">🔗 Paste Link</button>
+        <button class="upload-menu-item" data-action="upload-reel">🎬 Upload Reel</button>
+      </div>
+      <textarea id="composerInput" class="composer-input" rows="1" placeholder="Ask Shop AI anything..."></textarea>
+      <button class="mic-btn" aria-label="Voice input">🎙️</button>
+      <button class="send-btn" id="sendBtn" aria-label="Send">↑</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/chat.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+:root{
+  --glass-bg: rgba(255,255,255,0.55);
+  --glass-bg-soft: rgba(255,255,255,0.4);
+  --glass-border: rgba(255,255,255,0.6);
+  --glass-shadow: 0 8px 32px rgba(31,38,135,0.08);
+  --ink: #16181d;
+  --ink-soft: #6b7280;
+  --ink-faint: #9ca3af;
+  --accent: #16181d;
+  --purple: #7c6cf6;
+  --page-bg-1: #eef0f4;
+  --page-bg-2: #e4e7ef;
+  --page-bg-3: #f3ede9;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+}

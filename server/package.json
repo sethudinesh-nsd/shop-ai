@@ -1,0 +1,20 @@
+{
+  "name": "shop-ai-backend",
+  "version": "1.0.0",
+  "description": "Backend for Shop AI's AI Fashion Assistant chat (using Gemini's free API)",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@tavily/core": "^0.7.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+  
+  
+}
