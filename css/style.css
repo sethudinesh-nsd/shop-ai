@@ -5,6 +5,12 @@
   /* Background gradient */
   --bg-gradient: linear-gradient(135deg, #eae6fb 0%, #e6e9fb 45%, #e3e8fc 100%);
 
+  /* Soft accent blooms behind the page — same warm palette from variable.css */
+  --orb-peach: #ffd9b8;
+  --orb-blue: #c7d6fb;
+  --orb-lilac: #e3d6f7;
+  --orb-mint: #cdeee2;
+
   /* Surfaces */
   --color-white: #ffffff;
   --color-sidebar-bg: #f4f2fb;
@@ -45,6 +51,10 @@
 
   /* Layout */
   --sidebar-width: 260px;
+  /* ChatGPT's real conversation column is ~48rem (768px) — composer,
+     message thread, and attachment previews all share this ONE value so
+     they line up as a single column, the way ChatGPT's actually does. */
+  --content-width: 768px;
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
@@ -59,11 +69,18 @@
 
 html, body {
   height: 100%;
+  overflow: hidden;
 }
 
 body {
   font-family: var(--font-family);
-  background: var(--bg-gradient);
+  background:
+    radial-gradient(680px 460px at 4% -8%, var(--orb-peach) 0%, transparent 60%),
+    radial-gradient(680px 460px at 100% -4%, var(--orb-blue) 0%, transparent 60%),
+    radial-gradient(600px 480px at 92% 96%, var(--orb-lilac) 0%, transparent 60%),
+    radial-gradient(600px 480px at 2% 100%, var(--orb-mint) 0%, transparent 60%),
+    var(--bg-gradient);
+  background-attachment: fixed;
   color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -97,9 +114,13 @@ img {
 .app {
   display: flex;
   align-items: stretch;
-  min-height: 100vh;
+  height: 100vh;
   width: 100%;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
+
 
 /* ==========================================================================
    4. SIDEBAR
@@ -107,7 +128,10 @@ img {
 .sidebar {
   width: var(--sidebar-width);
   flex-shrink: 0;
-  background: var(--color-sidebar-bg);
+  background: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: var(--radius-xl);
   margin: 20px;
   margin-right: 0;
@@ -249,7 +273,17 @@ img {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 20px 40px 40px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 20px 20px 24px;
+}
+
+/* Once chatting, the composer should hug the bottom edge like ChatGPT/Claude —
+   drop .main's large bottom padding (it was tuned for the centered home screen). */
+.main--chat-mode,
+.main:has(.hero--chat-mode) {
+  padding: 12px 0 12px 20px !important;
 }
 
 /* --- Topbar --- */
@@ -257,7 +291,7 @@ img {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 10px 0 0;
+  padding: 0px 0 0;
 }
 
 .theme-toggle {
@@ -266,13 +300,13 @@ img {
   gap: 2px;
   background: var(--color-white);
   border-radius: var(--radius-pill);
-  padding: 6px;
+  padding: 2px;
   box-shadow: var(--shadow-toggle);
 }
 
 .theme-toggle__btn {
-  width: 34px;
-  height: 34px;
+  width: 20px;
+  height: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -301,6 +335,8 @@ img {
   justify-content: center;
   text-align: center;
   padding: 40px 20px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .hero__greeting {
@@ -313,6 +349,15 @@ img {
 .hero__name {
   color: var(--color-text-primary);
   font-weight: 700;
+}
+
+.hero__voice {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 17px;
+  color: var(--color-purple);
+  margin-bottom: 10px;
 }
 
 .hero__wave {
@@ -332,28 +377,50 @@ img {
 /* --- Search bar --- */
 .searchbar {
   width: 100%;
-  max-width: 840px;
+  max-width: var(--content-width);
+  margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: var(--color-input-bg);
-  border-radius: var(--radius-xl);
-  padding: 10px 12px 10px 20px;
-  box-shadow: var(--shadow-search);
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  min-height: 56px;
+  border-radius: 28px;
+  padding: 8px 10px 8px 16px;
+  box-shadow: 0 2px 10px rgba(20, 19, 26, 0.08);
+  transition: box-shadow 0.2s ease;
+}
+
+.searchbar:focus-within {
+  box-shadow: 0 4px 14px rgba(20, 19, 26, 0.10);
 }
 
 .searchbar__icon-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   color: var(--color-purple);
   flex-shrink: 0;
+  transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  align-self: center;
+}
+
+.searchbar__icon-btn:hover {
+  background: var(--color-purple-light);
 }
 
 .searchbar__icon-btn:last-of-type {
   color: var(--color-text-primary);
+}
+
+.searchbar__icon-btn:last-of-type:hover {
+  background: rgba(20, 19, 26, 0.05);
 }
 
 .searchbar__icon-btn--active {
@@ -362,32 +429,46 @@ img {
   border-radius: 50%;
 }
 
+.searchbar__icon-btn--active:hover {
+  background: var(--color-purple-dark);
+}
+
 .searchbar__input {
   flex: 1;
   border: none;
   outline: none;
+  resize: none;
   background: transparent;
   font-size: 16px;
+  font-family: inherit;
   color: var(--color-text-primary);
-  padding: 12px 0;
+  padding: 8px 0;
+  line-height: 1.45;
+  max-height: 200px;
+  overflow-y: auto;
+  align-self: center;
 }
 
 .searchbar__input::placeholder {
   color: var(--color-text-faint);
+  transition: color 0.2s ease;
 }
 
 .searchbar__submit {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
+  width: 38px;
+  height: 38px;
+  margin-bottom: 0;
+  margin-left: 2px;
+  border-radius: 50%;
   background: var(--color-black);
   color: var(--color-white);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: var(--shadow-submit);
-  transition: transform 0.15s ease, background 0.2s ease;
+  box-shadow: 0 2px 8px rgba(17,17,20,0.18);
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .searchbar__submit:hover {
@@ -399,6 +480,67 @@ img {
   transform: translateY(0);
 }
 
+/* --- Attachment previews (images picked, not yet sent) --- */
+.attachments-row {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.attachments-row[hidden] { display: none; }
+
+.attachment-chip {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 8px rgba(20, 19, 26, 0.12);
+  flex-shrink: 0;
+}
+.attachment-chip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.attachment-chip__remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.attachment-chip__remove svg { width: 10px; height: 10px; }
+
+/* --- Images attached to a sent chat message --- */
+.message__images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.message__images img {
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  display: block;
+}
+
 /* ==========================================================================
    7. FEATURES STRIP
    ========================================================================== */
@@ -406,9 +548,12 @@ img {
   width: 100%;
   max-width: 1150px;
   margin: 0 auto;
-  background: var(--color-card-bg);
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: var(--radius-xl);
-  padding: 26px 40px;
+  padding: 24px 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -480,41 +625,181 @@ img {
 }
 
 /* Chat thread: empty & collapsed until the first message is sent */
-.hero__chat {
+/* ChatGPT/Claude-style conversation layout: the SCROLL CONTAINER spans the
+   full width of the panel (so its scrollbar sits flush against the true
+   right edge), while the actual message column inside it stays capped and
+   centered. This mirrors how Claude/ChatGPT do it — full-bleed scroll track,
+   capped-width content. */
+.hero__chat-scroll {
   width: 100%;
-  max-width: 840px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  overflow-y: auto;
   flex: 0 0 auto;
+  min-height: 0;
   max-height: 0;
   opacity: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   transition: opacity 0.35s ease, max-height 0.35s ease;
-  padding: 4px 4px 4px;
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+
+  /* Firefox: invisible at rest, appears on hover — same as Claude's workspace */
   scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
 }
 
-.hero__chat::-webkit-scrollbar {
+.hero__chat-scroll:hover {
+  scrollbar-color: rgba(20, 19, 26, 0.22) transparent;
+}
+
+/* Chrome / Edge / Safari — thin flush-right scrollbar, invisible until the
+   panel is hovered (Claude's workspace only reveals it on hover/scroll,
+   never shows a resting thumb). */
+.hero__chat-scroll::-webkit-scrollbar {
   width: 6px;
 }
-
-.hero__chat::-webkit-scrollbar-thumb {
-  background: rgba(20, 19, 26, 0.12);
+.hero__chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.hero__chat-scroll::-webkit-scrollbar-thumb {
+  background-color: transparent;
   border-radius: var(--radius-pill);
+  transition: background-color 0.15s ease;
+}
+.hero__chat-scroll:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(20, 19, 26, 0.18);
+}
+.hero__chat-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(20, 19, 26, 0.32);
 }
 
-/* Search bar wrapper — identical searchbar, wrapper just repositions it */
+/* The message column itself: capped width, centered inside the full-bleed
+   scroll track above. Shares --content-width with the composer below it,
+   so both stay visually aligned as one ChatGPT-style column. */
+.hero__chat {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px;
+}
+
+/* ==========================================================================
+   OUTFIT CARDS — rendered by script.js when the AI's reply includes
+   structured outfit data (see systemPrompt.js's outfit-json block)
+   ========================================================================== */
+.outfit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.outfit-card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(22, 24, 29, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.outfit-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(31, 38, 135, 0.14);
+}
+
+.outfit-card__img {
+  aspect-ratio: 3 / 4;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 8px;
+}
+
+.outfit-card__tag {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--color-text-primary);
+  padding: 3px 9px;
+  border-radius: 100px;
+}
+
+.outfit-card__body {
+  padding: 10px 12px 12px;
+}
+
+.outfit-card__name {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 3px;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+.outfit-card__price {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-purple);
+  margin: 0 0 4px;
+}
+
+.outfit-card__why {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* ==========================================================================
+   STREAMING ENTRANCE ANIMATIONS — new content (paragraphs, headings, lists,
+   code blocks, outfit cards) fades/slides in as it appears, instead of
+   popping in instantly. Only ever applied to content new since the last
+   render (see animateNewChildren in script.js), so already-visible text
+   never re-flashes while later chunks stream in.
+   ========================================================================== */
+.content-block-enter {
+  animation: content-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes content-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.outfit-card-enter {
+  animation: outfit-card-in 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes outfit-card-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+
+
+
+/* Search bar wrapper — identical searchbar, wrapper just repositions it.
+   Shares --content-width with .hero__chat so both columns share one
+   visual edge, exactly like ChatGPT's composer and message thread. */
 .searchbar-wrapper {
   width: 100%;
-  max-width: 840px;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  flex: 0 0 auto;
+  z-index: 2;
+  padding-top: 10px;
   transition: margin 0.35s ease;
 }
 
 /* --- Chat mode: applied to #hero once the first message is sent --- */
 .hero--chat-mode {
-  justify-content: flex-end;
+  justify-content: flex-start;
+  align-items: stretch;
   height: 100%;
+  padding: 0 0 0 20px !important;
 }
 
 .hero--chat-mode .hero__intro {
@@ -526,11 +811,18 @@ img {
   overflow: hidden;
 }
 
-.hero--chat-mode .hero__chat {
+.hero--chat-mode .hero__chat-scroll {
   max-height: none;
   flex: 1 1 auto;
+  min-height: 0;
   opacity: 1;
-  margin-bottom: 18px;
+  margin-bottom: 8px;
+}
+
+.hero--chat-mode .hero__chat {
+  justify-content: flex-start;
+  align-items: stretch;
+  min-height: 100%;
 }
 
 .hero--chat-mode .searchbar-wrapper {
@@ -544,154 +836,439 @@ img {
 }
 
 .features--hidden {
-  opacity: 0;
-  max-height: 0;
-  margin: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  overflow: hidden;
-  pointer-events: none;
+  opacity: 0 !important;
+  max-height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-width: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
 }
 
-/* --- Message bubbles --- */
-.msg {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  max-width: 100%;
-  animation: msg-in 0.25s ease;
+/* --- Claude-style trailing spacer ---
+   A single element, always kept as the last child of the thread. script.js
+   resizes it live so the newest message always has just enough room below
+   it to scroll to the top of the panel — shrinking automatically as the
+   reply streams in, so it never leaves a stray gap once a turn is done. */
+.chat-spacer {
+  flex: 0 0 auto;
+  width: 100%;
+  height: 0;
 }
 
-.msg--user {
-  flex-direction: row-reverse;
-}
-
-.msg__avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: var(--color-purple-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-}
-
-.msg--assistant .msg__avatar::before {
-  content: "✨";
-}
-
-.msg--user .msg__avatar {
-  background: #1f1e26;
-}
-
-.msg--typing .msg__avatar::before {
-  content: "✨";
-}
-
-.msg__col {
+/* --- ChatGPT-style conversation layout --- */
+.message {
   display: flex;
   flex-direction: column;
-  max-width: 620px;
-  min-width: 0;
+  width: 100%;
+  margin: 0 0 16px 0;
+  animation: msg-in 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-.msg--user .msg__col {
+.message--user {
   align-items: flex-end;
+  padding-right: 20px;
+  scroll-margin-top: 18px;
 }
-
-.msg__bubble {
-  background: var(--color-white);
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-  font-size: 14.5px;
-  line-height: 1.55;
-  color: var(--color-text-primary);
-  box-shadow: var(--shadow-card);
-  max-width: 100%;
+.message--assistant {
+  align-items: flex-start;
+  padding-left: 20px;
+}
+.message__label {
+  display: none;
+}
+.message__content {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  line-height: 1.75;
+  font-weight: 400;
+  font-size: 16px;
+  letter-spacing: -0.008em;
   text-align: left;
-  white-space: pre-wrap;
+  color: var(--color-text-primary);
+  max-width: var(--content-width);
+  padding: 0;
+  border-radius: 0;
+  word-break: break-word;
+}
+/* Plain-text fallback (no markdown libs loaded / typing indicator) still
+   needs to read like a paragraph, not a wall of unbroken text. */
+.message--assistant .message__content {
+  white-space: normal;
+}
+.message--user .message__content {
+  background: var(--color-card-bg);
+  color: var(--color-text-primary);
+  border-radius: 16px;
+  padding: 10px 14px;
+  max-width: 78%;
+  box-shadow: 0 1px 2px rgba(20, 19, 26, 0.05);
+  font-size: 14.5px;
+  line-height: 1.65;
+  text-align: left;
+}
+.message__label-avatar {
+  display: none;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.message--assistant .message__label-avatar {
+  display: inline-flex;
+}
+/* ==========================================================================
+   ChatGPT-style markdown typography for assistant messages
+   Assistant output should read like a document — generous whitespace,
+   a clear heading hierarchy, and consistent vertical rhythm — never like
+   a chat bubble. User bubbles are untouched (they stay plain text).
+   ========================================================================== */
+:root {
+  --mono-font: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
 }
 
-.msg__bubble p {
+/* First/last child of the whole message never adds stray top/bottom gap */
+.message__content > *:first-child { margin-top: 0; }
+.message__content > *:last-child { margin-bottom: 0; }
+
+/* --- Paragraphs --- */
+.message__content p {
+  margin: 0 0 20px 0;
+}
+
+/* --- Headings: editorial serif, not documentation-style. No divider line —
+   a horizontal rule under every heading reads like a wiki page, not a
+   stylist talking to you. Weight carries the hierarchy instead. --- */
+.message__content h1,
+.message__content h2,
+.message__content h3,
+.message__content h4,
+.message__content h5,
+.message__content h6 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+.message__content h1 {
+  font-size: 1.7em;
+  margin: 30px 0 14px;
+}
+.message__content h2 {
+  font-size: 1.35em;
+  margin: 26px 0 12px;
+}
+.message__content h3 {
+  font-size: 1.15em;
+  margin: 22px 0 8px;
+}
+.message__content h4 {
+  font-size: 1.02em;
+  margin: 20px 0 6px;
+}
+.message__content h5 {
+  font-family: var(--font-family);
+  font-size: 0.9em;
+  margin: 18px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+.message__content h6 {
+  font-family: var(--font-family);
+  font-size: 0.85em;
+  margin: 16px 0 6px;
+  color: var(--color-text-secondary);
+}
+
+/* --- Bold / italic / strikethrough --- */
+.message__content strong {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.message__content em {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  color: var(--color-purple);
+}
+.message__content del,
+.message__content s {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+/* --- Lists: proper indentation, tighter rhythm within an item, more
+   space between items so the eye can track them at a glance. Custom
+   purple dash marker instead of a default gray disc — small detail, but
+   default bullets are the fastest visual tell of "generic markdown
+   render" rather than a designed product. --- */
+.message__content ul,
+.message__content ol {
+  margin: 0 0 20px 0;
+  padding-left: 22px;
+}
+.message__content ul { list-style: none; }
+.message__content ol { list-style: decimal; }
+.message__content ul > li {
+  position: relative;
+}
+.message__content ul > li::before {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: 11px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-purple);
+}
+.message__content li {
+  margin-bottom: 6px;
+  padding-left: 2px;
+  line-height: 1.75;
+}
+.message__content li::marker {
+  color: var(--color-text-muted);
+}
+.message__content li:last-child {
+  margin-bottom: 0;
+}
+/* Nested lists sit closer to their parent item than top-level items do */
+.message__content li > ul,
+.message__content li > ol {
+  margin: 6px 0 6px;
+}
+/* "Loose" lists (blank line between items) — marked wraps each item's
+   text in <p>, so neutralize the paragraph's own margin and let li
+   spacing do the work instead. */
+.message__content li > p {
   margin: 0 0 8px 0;
 }
-
-.msg__bubble p:last-child {
+.message__content li > p:last-child {
   margin-bottom: 0;
 }
 
-.msg__bubble a {
+/* --- Task / checklists (GFM) --- */
+.message__content ul.contains-task-list {
+  list-style: none;
+  padding-left: 4px;
+}
+.message__content li.task-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.message__content li.task-list-item input[type="checkbox"] {
+  margin-top: 6px;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--color-purple-dark);
+  flex-shrink: 0;
+}
+
+/* --- Blockquotes --- */
+.message__content blockquote {
+  margin: 20px 0;
+  padding: 2px 18px;
+  border-left: 3px solid var(--color-purple-light);
+  color: var(--color-text-secondary);
+}
+.message__content blockquote p {
+  margin: 0 0 10px 0;
+}
+.message__content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* --- Horizontal rule --- */
+.message__content hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 28px 0;
+}
+
+/* --- Inline code --- */
+.message__content code {
+  background: var(--color-card-bg);
+  color: #b3261e;
+  font-family: var(--mono-font);
+  font-size: 0.86em;
+  padding: 0.2em 0.45em;
+  border-radius: 6px;
+  word-break: break-word;
+}
+
+/* --- Fenced code blocks: ChatGPT-style card with a header
+   (language label + copy button) sitting above the code itself --- */
+.message__content pre {
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+.code-block {
+  margin: 20px 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+}
+.code-block__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(20, 19, 26, 0.04);
+  border-bottom: 1px solid var(--color-border);
+  font-family: var(--mono-font);
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+.code-block__lang {
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+.code-block__copy {
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.code-block__copy:hover {
+  background: var(--color-purple-light);
+  color: var(--color-purple-dark);
+}
+.code-block__copy--copied {
+  color: var(--color-purple-dark);
+}
+.message__content pre code,
+.code-block pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 16px 18px;
+  background: transparent;
+  border-radius: 0;
+  font-family: var(--mono-font);
+  font-size: 13.5px;
+  line-height: 1.6;
+  white-space: pre;
+  color: var(--color-text-primary);
+}
+/* highlight.js emits its own background — let our card own it instead */
+.message__content pre code.hljs {
+  background: transparent;
+  padding: 0;
+}
+
+/* --- Tables: clean, bordered, responsive ---
+   Opaque backdrop is deliberate: the page background is a fixed, colored
+   gradient (see the --orb-* vars), so a translucent table would pick up
+   whatever hue happens to sit behind it at that scroll position — that's
+   what was producing the tan/lavender-striped look. An opaque wrapper
+   keeps the table a consistent card no matter where it scrolls to. */
+.message__content .table-wrapper {
+  margin: 20px 0;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+}
+.message__content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+.message__content th,
+.message__content td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+.message__content thead th {
+  background: var(--color-card-bg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+.message__content tbody tr:last-child td {
+  border-bottom: none;
+}
+.message__content tbody tr:hover {
+  background: rgba(20, 19, 26, 0.02);
+}
+
+/* --- Images --- */
+.message__content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  margin: 20px 0;
+  display: block;
+}
+
+/* --- Links --- */
+.message__content a {
   color: var(--color-purple-dark);
   text-decoration: underline;
   text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
   font-weight: 500;
+  transition: color 0.15s ease;
+}
+.message__content a:hover {
+  color: var(--color-purple);
 }
 
-.msg--user .msg__bubble {
-  background: var(--color-black);
-  color: var(--color-white);
-  box-shadow: none;
-}
-
-.msg--assistant .msg__bubble {
-  border-top-left-radius: 6px;
-}
-
-.msg--user .msg__bubble {
-  border-top-right-radius: 6px;
-}
-
-.msg-image {
-  display: block;
-  max-width: 260px;
-  width: 100%;
-  border-radius: 12px;
-  margin: 8px 0;
-  border: 1px solid var(--color-border);
-  object-fit: cover;
-}
-
-/* --- Message meta row (timestamp + copy) --- */
-.msg__meta {
+/* Message actions row — hidden until hover, small icon buttons, like ChatGPT */
+.message__actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 0;
-  overflow: hidden;
+  gap: 4px;
+  margin-top: 6px;
   opacity: 0;
-  padding: 0 4px;
-  transition: opacity 0.15s ease, height 0.15s ease;
+  transform: translateY(-2px);
+  pointer-events: none;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-left: 20px;
 }
-
-.msg:hover .msg__meta {
-  height: 20px;
+.message:hover .message__actions,
+.message:focus-within .message__actions {
   opacity: 1;
-  margin-top: 4px;
+  transform: translateY(0);
+  pointer-events: auto;
 }
-
-.msg--user .msg__meta {
-  justify-content: flex-end;
-}
-
-.msg__time {
-  font-size: 11px;
-  color: var(--color-text-faint);
-}
-
-.msg__copy {
-  font-size: 11px;
-  font-weight: 600;
+.message__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   color: var(--color-text-muted);
-  padding: 2px 6px;
-  border-radius: 6px;
-  transition: background 0.15s ease, color 0.15s ease;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-.msg__copy:hover {
-  background: rgba(20, 19, 26, 0.06);
+.message__action:hover {
+  background: var(--color-purple-light);
+  color: var(--color-purple-dark);
+}
+.message__action--active.message__action--like {
+  color: var(--color-purple-dark);
+  background: var(--color-purple-light);
+}
+.message__action--active.message__action--dislike {
   color: var(--color-text-primary);
+  background: var(--color-border);
 }
 
 /* --- Outfit cards --- */
@@ -779,32 +1356,43 @@ img {
 .suggestion-chip {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 9px;
+  padding: 8px 16px 8px 10px;
   border: 1px solid var(--color-border);
-  background: var(--color-white);
+  background: rgba(255, 255, 255, 0.75);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   border-radius: var(--radius-pill);
   font-size: 13.5px;
   font-weight: 500;
   color: var(--color-text-primary);
   cursor: pointer;
-  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
 .suggestion-chip:hover {
   border-color: var(--color-purple);
+  background: var(--color-white);
   transform: translateY(-2px);
   box-shadow: var(--shadow-card);
 }
 
 .suggestion-chip__icon {
-  font-size: 14px;
+  font-size: 13px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-purple-light);
+  flex-shrink: 0;
 }
 
 @keyframes msg-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -844,5 +1432,38 @@ img {
   30% {
     transform: translateY(-4px);
     opacity: 1;
+  }
+}
+
+/* --- Thinking state (used in place of typing-dots) --- */
+.thinking-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 2px;
+}
+
+.thinking-indicator__mark {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  animation: thinking-pulse 1.6s ease-in-out infinite;
+}
+
+.thinking-indicator__text {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--color-text-secondary);
+}
+
+@keyframes thinking-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
   }
 }

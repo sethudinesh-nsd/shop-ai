@@ -9,12 +9,22 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,400;1,400;1,500&display=swap"
     rel="stylesheet"
   />
 
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/responsive.css" />
+  <!-- Syntax highlighting theme (token colors only — background/spacing are overridden by style.css) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css" />
+
+  <link rel="stylesheet" href="../css/style.css?v=9" />
+  <link rel="stylesheet" href="../css/responsive.css?v=9" />
+
+  <!-- Markdown parsing (marked), HTML sanitization (DOMPurify), syntax highlighting (highlight.js).
+       Served from jsDelivr (mirrors npm directly) rather than cdnjs, which only
+       mirrors a curated subset of versions and can 404 on an exact pin. -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.5/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
 </head>
 <body>
   <div class="app">
@@ -58,7 +68,7 @@
           <span class="nav-label">AI Chat</span>
         </a>
 
-        <a href="#" class="nav-item" data-nav="wardrobe">
+        <a href="wardrobe.html" class="nav-item" data-nav="wardrobe">
           <span class="nav-icon">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19.5 21H4.5a1 1 0 0 1-1-1V8.6a1 1 0 0 1 .4-.8l3.1-2.3"/>
@@ -143,6 +153,7 @@
         <!-- Greeting + title: fades out on first message -->
         <div class="hero__intro" id="heroIntro">
           <p class="hero__greeting">Good afternoon, <span class="hero__name">Dinesh</span> <span class="hero__wave">👋</span></p>
+          <p class="hero__voice">Let's find something that feels like you.</p>
           <h1 class="hero__title">What are you looking to wear today?</h1>
 
           <div class="hero__suggestions" id="heroSuggestions">
@@ -162,31 +173,36 @@
         </div>
 
         <!-- Chat thread: hidden until the first message is sent -->
-        <div class="hero__chat" id="chatMessages" aria-live="polite"></div>
+        <div class="hero__chat-scroll" id="chatScroll">
+          <div class="hero__chat" id="chatMessages" aria-live="polite"></div>
+        </div>
 
         <!-- Search bar: identical markup/design, wrapper only controls position -->
         <div class="searchbar-wrapper" id="searchbarWrapper">
+          <!-- Attachment previews for images picked but not yet sent. Hidden
+               (and empty) whenever pendingImages is empty — see script.js. -->
+          <div class="attachments-row" id="attachmentsRow" hidden></div>
           <div class="searchbar">
-            <button class="searchbar__icon-btn" aria-label="Add" id="uploadBtn">
+            <button class="searchbar__icon-btn" aria-label="Add photo" id="uploadBtn" title="Add photo">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 5v14M5 12h14"/>
               </svg>
             </button>
-            <input type="file" id="fileInput" hidden />
-            <input
-              type="text"
+            <input type="file" id="fileInput" accept="image/*" multiple hidden />
+            <textarea
               class="searchbar__input"
               placeholder="Describe your look, occasion or paste a link..."
               id="searchInput"
-            />
-            <button class="searchbar__icon-btn" aria-label="Voice input">
+              rows="1"
+            ></textarea>
+            <button class="searchbar__icon-btn" aria-label="Voice input" title="Voice input">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/>
                 <path d="M19 11a7 7 0 0 1-14 0"/>
                 <path d="M12 18v3"/>
               </svg>
             </button>
-            <button class="searchbar__submit" aria-label="Submit" id="submitBtn">
+            <button class="searchbar__submit" aria-label="Submit" id="submitBtn" title="Send">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 19V5M5 12l7-7 7 7"/>
               </svg>
@@ -253,16 +269,49 @@
     </main>
   </div>
 
-  <!-- Message bubble template (cloned by script.js, never shown directly) -->
+  <!-- Modern ChatGPT-style message template (cloned by script.js, never shown directly) -->
   <template id="messageTemplate">
-    <div class="msg">
-      <div class="msg__avatar"></div>
-      <div class="msg__col">
-        <div class="msg__bubble"></div>
-        <div class="msg__meta">
-          <span class="msg__time"></span>
-          <button class="msg__copy" type="button" title="Copy" data-action="copy">Copy</button>
-        </div>
+    <div class="message">
+      <div class="message__label">
+        <span class="message__label-avatar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+            <path d="M12 2 L14 9 L21 11 L14 13 L12 20 L10 13 L3 11 L10 9 Z" fill="url(#msgSparkleGrad)"/>
+            <defs>
+              <linearGradient id="msgSparkleGrad" x1="3" y1="2" x2="21" y2="20" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#a855f7"/>
+                <stop offset="1" stop-color="#7c3aed"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </span>
+        <span class="message__label-text"></span>
+      </div>
+      <div class="message__content"></div>
+      <div class="message__actions" data-role-actions>
+        <button class="message__action" data-action="copy" data-for="all" title="Copy" aria-label="Copy">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="12" height="12" rx="2.5"/>
+            <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>
+          </svg>
+        </button>
+        <button class="message__action" data-action="regenerate" data-for="assistant" title="Regenerate" aria-label="Regenerate">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 0 1 15.3-6.4L21 8"/>
+            <path d="M21 3v5h-5"/>
+            <path d="M21 12a9 9 0 0 1-15.3 6.4L3 16"/>
+            <path d="M3 21v-5h5"/>
+          </svg>
+        </button>
+        <button class="message__action" data-action="like" data-for="assistant" title="Good response" aria-label="Good response">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6.5A2 2 0 0 0 17.8 12H14V6.5a2.5 2.5 0 0 0-5 0L7 11"/>
+          </svg>
+        </button>
+        <button class="message__action" data-action="dislike" data-for="assistant" title="Bad response" aria-label="Bad response">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 2v11M22 11V4a2 2 0 0 0-2-2H7.5a2 2 0 0 0-2 1.6L4.2 10.1A2 2 0 0 0 6.2 12.5H10V18a2.5 2.5 0 0 0 5 0l2-6.5"/>
+          </svg>
+        </button>
       </div>
     </div>
   </template>

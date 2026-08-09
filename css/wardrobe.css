@@ -1,0 +1,282 @@
+/* ==========================================================================
+   WARDROBE PAGE — styles specific to wardrobe.html only.
+   Relies on style.css for shared tokens (--color-*, --radius-*, --font-family)
+   and the sidebar/topbar/glass-panel design system. Nothing here should
+   duplicate those — only wardrobe-specific layout.
+   ========================================================================== */
+
+.wardrobe-view {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 8px 4px 40px;
+}
+
+.wardrobe-view__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.wardrobe-view__voice {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  color: var(--color-purple);
+  margin: 0 0 4px;
+}
+
+.wardrobe-view__title {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 28px;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.wardrobe-view__add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 18px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--color-text-primary);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+.wardrobe-view__add-btn:hover {
+  background: var(--color-purple);
+  transform: translateY(-1px);
+}
+
+/* --- Empty state --- */
+.wardrobe-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 70px 24px;
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-xl);
+}
+.wardrobe-empty[hidden] { display: none; }
+.wardrobe-empty svg { color: var(--color-purple); margin-bottom: 6px; }
+.wardrobe-empty__title {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.wardrobe-empty__subtitle {
+  font-size: 13.5px;
+  max-width: 340px;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+.wardrobe-empty__cta {
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+.wardrobe-empty__cta:hover {
+  border-color: var(--color-purple);
+  transform: translateY(-1px);
+}
+
+/* --- Grid + cards --- */
+.wardrobe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.wardrobe-item {
+  background: #fff;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(22, 24, 29, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.wardrobe-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(31, 38, 135, 0.14);
+}
+
+.wardrobe-item__img-wrap {
+  position: relative;
+  aspect-ratio: 1 / 1;
+}
+.wardrobe-item__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.wardrobe-item__delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.wardrobe-item:hover .wardrobe-item__delete { opacity: 1; }
+.wardrobe-item__delete svg { width: 12px; height: 12px; }
+
+.wardrobe-item__body {
+  padding: 9px 10px 11px;
+}
+.wardrobe-item__name-input,
+.wardrobe-item__category-select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  font-size: 12.5px;
+  padding: 0;
+  margin: 0 0 3px;
+}
+.wardrobe-item__name-input {
+  font-weight: 600;
+}
+.wardrobe-item__name-input:focus,
+.wardrobe-item__category-select:focus {
+  outline: none;
+}
+.wardrobe-item__category-select {
+  color: var(--color-text-secondary);
+  font-size: 11.5px;
+  text-transform: capitalize;
+}
+
+/* --- Analyzing state (vision request in flight) --- */
+.wardrobe-item--analyzing .wardrobe-item__img { filter: saturate(0.7) brightness(0.92); }
+
+.wardrobe-item__analyzing-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(20, 19, 26, 0.32);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.wardrobe-item__analyzing-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: wardrobe-spin 0.7s linear infinite;
+}
+@keyframes wardrobe-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Confidence badge --- */
+.wardrobe-item__confidence {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-purple-light);
+  color: var(--color-purple);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.wardrobe-item__confidence--low {
+  background: rgba(20, 19, 26, 0.06);
+  color: var(--color-text-secondary);
+}
+.wardrobe-item__confidence--manual {
+  background: rgba(20, 19, 26, 0.06);
+  color: var(--color-text-secondary);
+}
+
+/* --- Editable details disclosure --- */
+.wardrobe-item__details {
+  margin-top: 8px;
+}
+.wardrobe-item__details summary {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-purple);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.wardrobe-item__details summary::-webkit-details-marker { display: none; }
+.wardrobe-item__details summary::before {
+  content: '+ ';
+}
+.wardrobe-item__details[open] summary::before {
+  content: '– ';
+}
+
+.wardrobe-item__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.wardrobe-item__field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.wardrobe-item__field-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.wardrobe-item__field input {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 5px 7px;
+  font-size: 11.5px;
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  background: #fff;
+}
+.wardrobe-item__field input:focus {
+  outline: none;
+  border-color: var(--color-purple);
+}

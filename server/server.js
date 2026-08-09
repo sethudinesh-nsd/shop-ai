@@ -1,4 +1,4 @@
-/**
+/****
  * Simple static file server for the Shop AI UI.
  * No frameworks — uses only Node core modules (http, fs, path).
  *
@@ -10,6 +10,9 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const agent = require('./services/agent');
+const { chatStream } = require('./services/ai');
+const vision = require('./services/vision');
+const { uploadImage } = require('./services/upload'); // ADDED THIS IMPORT
 
 const PORT = process.env.PORT || 3000;
 const ROOT = path.resolve(__dirname, '..');
@@ -31,9 +34,6 @@ const MIME_TYPES = {
 };
 
 // Allows the frontend to be previewed from a different origin/port
-// (e.g. VS Code Live Server on :5500) while the API stays on :3000.
-// Without these headers, the browser blocks the response silently and
-// fetch() just throws — which looks identical to "server not running".
 function applyCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -58,10 +58,11 @@ async function respondToChat(req, res) {
 
     const userMessage = (payload.message || '').toString();
     const history = Array.isArray(payload.history) ? payload.history : [];
+    const images = Array.isArray(payload.images) ? payload.images : [];
 
     let result;
     try {
-      result = await agent(userMessage, history);
+      result = await agent(userMessage, history, images);
     } catch (err) {
       console.error('AI agent error:', err);
       result = {
@@ -75,11 +76,92 @@ async function respondToChat(req, res) {
   });
 }
 
+async function respondToChatStream(req, res) {
+  let body = '';
+  req.on('data', (chunk) => {
+    body += chunk;
+  });
+
+  req.on('end', async () => {
+    let payload;
+    try {
+      payload = JSON.parse(body || '{}');
+    } catch (err) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Invalid JSON body' }));
+      return;
+    }
+
+    const userMessage = (payload.message || '').toString();
+    const history = Array.isArray(payload.history) ? payload.history : [];
+    const images = Array.isArray(payload.images) ? payload.images : [];
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    });
+
+    if (typeof res.flushHeaders === 'function') {
+      res.flushHeaders();
+    }
+
+    res.write(': connected\n\n');
+
+    try {
+      const messages = await agent.buildMessages(userMessage, history, images);
+
+      await chatStream(messages, chunk => {
+        res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+      });
+      res.write('event: done\ndata: done\n\n');
+      res.end();
+    } catch (err) {
+      console.error('Stream error:', err);
+      res.write(`event: error\ndata: ${JSON.stringify({ error: 'Streaming failed' })}\n\n`);
+      res.end();
+    }
+  });
+}
+
+// Wardrobe upload -> vision analysis.
+async function respondToVisionWardrobe(req, res) {
+  let body = '';
+  req.on('data', (chunk) => {
+    body += chunk;
+  });
+
+  req.on('end', async () => {
+    let payload;
+    try {
+      payload = JSON.parse(body || '{}');
+    } catch (err) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Invalid JSON body' }));
+      return;
+    }
+
+    const image = (payload.image || '').toString();
+    if (!image) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Missing "image" (data URL) in request body' }));
+      return;
+    }
+
+    const metadata = await vision.analyzeWardrobeItem(image).catch((err) => {
+      console.error('Unexpected vision error:', err);
+      return { category: 'top', confidence: 0 };
+    });
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+    res.end(JSON.stringify(metadata));
+  });
+}
+
 const server = http.createServer((req, res) => {
   applyCorsHeaders(res);
 
-  // Preflight requests: the browser sends OPTIONS before a cross-origin
-  // POST with a JSON body. Must answer this or the real POST never fires.
+  // Preflight requests
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
     res.end();
@@ -88,8 +170,39 @@ const server = http.createServer((req, res) => {
 
   let requestUrl = decodeURIComponent(req.url.split('?')[0]);
 
+  // --- NEW IMAGE UPLOAD ROUTE (Cloudinary) ---
+  if (req.method === 'POST' && requestUrl === '/api/upload') {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const { image } = JSON.parse(body || '{}');
+        if (!image) throw new Error('Missing image data');
+        
+        const imageUrl = await uploadImage(image);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ url: imageUrl }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+  // -------------------------------------------
+
+  if (req.method === 'POST' && requestUrl === '/api/chat/stream') {
+    respondToChatStream(req, res);
+    return;
+  }
+
   if (req.method === 'POST' && requestUrl === '/api/chat') {
     respondToChat(req, res);
+    return;
+  }
+
+  if (req.method === 'POST' && requestUrl === '/api/vision/wardrobe') {
+    respondToVisionWardrobe(req, res);
     return;
   }
 

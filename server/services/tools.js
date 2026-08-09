@@ -1,14 +1,18 @@
-
-
 const { searchWeb } = require('./search');
+const vision = require('./vision');
 
 const tools = {
   async search(query) {
     return await searchWeb(query);
   },
 
+  // Kept as a tool (in addition to being called directly from agent.js
+  // whenever chat images are present) so the tool-selector model can also
+  // reach for vision explicitly later — e.g. "describe this product image
+  // I found" during a search-tool turn. Same underlying vision service
+  // either way; no duplicate logic.
   async vision(image) {
-    throw new Error('Vision tool not implemented yet.');
+    return await vision.describeImagesForChat([image]);
   },
 
   async weather(location) {
