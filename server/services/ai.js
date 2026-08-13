@@ -3,9 +3,9 @@ require('dotenv').config();
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-3.5-turbo';
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
-async function chat(messages, maxTokens = 900) {
+async function chat(messages, maxTokens = 500) {
   if (GROQ_API_KEY) {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -58,7 +58,7 @@ async function chat(messages, maxTokens = 900) {
 
 
 // Streaming Groq support
-async function chatStream(messages, onChunk, maxTokens = 900) {
+async function chatStream(messages, onChunk, maxTokens = 500) {
   if (!GROQ_API_KEY) {
     // Fallback to non-streaming
     const text = await chat(messages, maxTokens);

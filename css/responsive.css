@@ -120,6 +120,16 @@
     justify-content: center;
   }
 
+  /* Profile menu anchors to the button's right edge and opens upward,
+     since .sidebar__user now sits near the right end of a horizontal
+     bar instead of the bottom of a tall vertical sidebar. */
+  .profile-menu {
+    left: auto;
+    right: 0;
+    bottom: calc(100% + 8px);
+    transform-origin: bottom right;
+  }
+
   /* Conversation column relaxes to full width on tablet */
   .hero__chat {
     max-width: 100%;

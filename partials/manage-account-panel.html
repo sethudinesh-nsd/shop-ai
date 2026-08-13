@@ -1,0 +1,294 @@
+<!--
+  Manage-account overlay.
+  Injected by js/app.js (openPanel()) into <body> the first time the user
+  opens it from any page. Stays in the DOM after that — closing just
+  toggles the `manage-overlay--open` class so reopening is instant.
+  Initialized by js/manageaccount/index.js via window.initManageAccountPanel(root).
+-->
+<div class="manage-overlay" id="manageOverlay">
+  <div class="manage-overlay__backdrop" data-manage-close></div>
+
+  <div class="manage-panel">
+    <button type="button" class="manage-panel__close" data-manage-close aria-label="Close" title="Close">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <!-- Left rail: title + tabs -->
+    <nav class="manage-nav">
+      <h1 class="manage-nav__title">Manage account</h1>
+      <p class="manage-nav__subtitle">Manage your information and preferences that power Shop AI.</p>
+
+      <div class="manage-tabs" role="tablist">
+        <button class="manage-tab manage-tab--active" data-tab="profile" role="tab" aria-selected="true">
+          <span class="manage-tab__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="3.4"/>
+              <path d="M5 20c1.4-3.6 4.2-5.5 7-5.5s5.6 1.9 7 5.5"/>
+            </svg>
+          </span>
+          Profile
+        </button>
+        <button class="manage-tab" data-tab="security" role="tab" aria-selected="false">
+          <span class="manage-tab__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3l7 3v5.5c0 4.6-3 8.2-7 9.5-4-1.3-7-4.9-7-9.5V6z"/>
+            </svg>
+          </span>
+          Security
+        </button>
+        <button class="manage-tab" data-tab="account" role="tab" aria-selected="false">
+          <span class="manage-tab__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="6" width="18" height="13" rx="2"/>
+              <path d="M3 10h18"/>
+            </svg>
+          </span>
+          Account
+        </button>
+        <button class="manage-tab" data-tab="connected" role="tab" aria-selected="false">
+          <span class="manage-tab__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 15 15 9"/>
+              <path d="M11 6l1-1a3.5 3.5 0 0 1 5 5l-1 1"/>
+              <path d="M13 18l-1 1a3.5 3.5 0 0 1-5-5l1-1"/>
+            </svg>
+          </span>
+          Connected accounts
+        </button>
+      </div>
+
+      <div class="manage-nav__footer">
+        <div class="manage-nav__note">
+          <p>Your profile helps Shop AI personalize recommendations that truly match your style.</p>
+          <a href="#">
+            Learn more
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 17 17 7M8 7h9v9"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Right column: tab content -->
+    <div class="manage-content">
+
+      <!-- ---------- PROFILE TAB ---------- -->
+      <section class="manage-section manage-section--active" id="tab-profile">
+
+        <!-- 1. Profile -->
+        <div class="manage-card" data-card="identity">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">1. Profile</h2>
+            <div class="manage-card__actions">
+              <button class="manage-edit-btn manage-edit-btn--edit" data-edit-toggle>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                Edit
+              </button>
+              <button class="manage-edit-btn manage-edit-btn--cancel" data-edit-cancel>Cancel</button>
+              <button class="manage-edit-btn manage-edit-btn--save" data-edit-save>Save</button>
+            </div>
+          </div>
+
+          <div class="manage-profile">
+            <div class="manage-avatar">
+              <img src="../assets/images/avatar.jpg" alt="Dinesh" onerror="this.style.display='none'; this.parentElement.style.background='var(--color-sidebar-bg)'" />
+              <span class="manage-avatar__edit" title="Change photo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 8a2 2 0 0 1 2-2h1.2l.9-1.5A1.5 1.5 0 0 1 9.4 4h5.2a1.5 1.5 0 0 1 1.3.75L16.8 6H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/>
+                  <circle cx="12" cy="13" r="3.2"/>
+                </svg>
+              </span>
+            </div>
+            <div>
+              <p class="manage-profile__name">Dinesh</p>
+              <p class="manage-profile__email">email@example.com</p>
+              <span class="manage-badge">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 14 9 21 11 14 13 12 20 10 13 3 11 10 9Z"/></svg>
+                Fashion explorer
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Basic information -->
+        <div class="manage-card" data-card="basic">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">2. Basic information</h2>
+            <div class="manage-card__actions">
+              <button class="manage-edit-btn manage-edit-btn--edit" data-edit-toggle>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                Edit
+              </button>
+              <button class="manage-edit-btn manage-edit-btn--cancel" data-edit-cancel>Cancel</button>
+              <button class="manage-edit-btn manage-edit-btn--save" data-edit-save>Save</button>
+            </div>
+          </div>
+
+          <div class="manage-grid">
+            <div class="manage-field">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Age</span>
+                <span class="manage-field__value">21</span>
+                <input class="manage-field__input" type="number" value="21" />
+              </div>
+            </div>
+
+            <div class="manage-field">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.4-3.6 4.2-5.5 7-5.5s5.6 1.9 7 5.5"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Gender</span>
+                <span class="manage-field__value">Male</span>
+                <select class="manage-field__select">
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Non-binary</option>
+                  <option>Prefer not to say</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="manage-field">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.4"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Location</span>
+                <span class="manage-field__value">Hyderabad, India</span>
+                <input class="manage-field__input" type="text" value="Hyderabad, India" />
+              </div>
+            </div>
+
+            <div class="manage-field">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Height</span>
+                <span class="manage-field__value">5'8" (173 cm)</span>
+                <input class="manage-field__input" type="text" value="5'8&quot; (173 cm)" />
+              </div>
+            </div>
+
+            <div class="manage-field">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Weight</span>
+                <span class="manage-field__value">65 kg</span>
+                <input class="manage-field__input" type="text" value="65 kg" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Body & fit -->
+        <div class="manage-card" data-card="fit">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">3. Body &amp; fit</h2>
+            <div class="manage-card__actions">
+              <button class="manage-edit-btn manage-edit-btn--edit" data-edit-toggle>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                Edit
+              </button>
+              <button class="manage-edit-btn manage-edit-btn--cancel" data-edit-cancel>Cancel</button>
+              <button class="manage-edit-btn manage-edit-btn--save" data-edit-save>Save</button>
+            </div>
+          </div>
+
+          <div class="manage-grid">
+            <div class="manage-field">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 8v6M9 11h6M9 20l3-6 3 6"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Body type</span>
+                <span class="manage-field__value">Athletic</span>
+                <select class="manage-field__select">
+                  <option>Slim</option>
+                  <option selected>Athletic</option>
+                  <option>Regular</option>
+                  <option>Broad</option>
+                  <option>Plus</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="manage-field">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12l-1.5 5H7.5Z"/><path d="M7.5 9 6 20h12l-1.5-11"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Usual size</span>
+                <span class="manage-field__value">M (Medium)</span>
+                <select class="manage-field__select">
+                  <option>XS</option><option>S</option>
+                  <option selected>M (Medium)</option>
+                  <option>L</option><option>XL</option><option>XXL</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="manage-field">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12l-1.5 5H7.5Z"/><path d="M7.5 9 6 20h12l-1.5-11"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Preferred fit</span>
+                <span class="manage-field__value">Regular</span>
+                <select class="manage-field__select">
+                  <option>Slim fit</option>
+                  <option selected>Regular</option>
+                  <option>Relaxed</option>
+                  <option>Oversized</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- SECURITY TAB ---------- -->
+      <section class="manage-section" id="tab-security">
+        <div class="manage-placeholder">
+          <span class="manage-placeholder__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5.5c0 4.6-3 8.2-7 9.5-4-1.3-7-4.9-7-9.5V6z"/></svg>
+          </span>
+          <h3>Password &amp; sign-in</h3>
+          <p>Manage your password, two-factor authentication, and active sessions here.</p>
+        </div>
+      </section>
+
+      <!-- ---------- ACCOUNT TAB ---------- -->
+      <section class="manage-section" id="tab-account">
+        <div class="manage-placeholder">
+          <span class="manage-placeholder__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>
+          </span>
+          <h3>Plan &amp; billing</h3>
+          <p>See your current plan, update billing details, or delete your account.</p>
+        </div>
+      </section>
+
+      <!-- ---------- CONNECTED ACCOUNTS TAB ---------- -->
+      <section class="manage-section" id="tab-connected">
+        <div class="manage-placeholder">
+          <span class="manage-placeholder__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15 15 9"/><path d="M11 6l1-1a3.5 3.5 0 0 1 5 5l-1 1"/><path d="M13 18l-1 1a3.5 3.5 0 0 1-5-5l1-1"/></svg>
+          </span>
+          <h3>Connected accounts</h3>
+          <p>Link Google, Instagram, or Pinterest to personalize your style recommendations further.</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>

@@ -18,6 +18,7 @@
 
   <link rel="stylesheet" href="../css/style.css?v=9" />
   <link rel="stylesheet" href="../css/responsive.css?v=9" />
+  <link rel="stylesheet" href="../css/manageaccount/index.css?v=1" />
 
   <!-- Markdown parsing (marked), HTML sanitization (DOMPurify), syntax highlighting (highlight.js).
        Served from jsDelivr (mirrors npm directly) rather than cdnjs, which only
@@ -58,17 +59,7 @@
           </span>
           <span class="nav-label">Home</span>
         </a>
-
-        <a href="#" class="nav-item" data-nav="chat">
-          <span class="nav-icon">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-            </svg>
-          </span>
-          <span class="nav-label">AI Chat</span>
-        </a>
-
-        <a href="wardrobe.html" class="nav-item" data-nav="wardrobe">
+<a href="wardrobe.html" class="nav-item" data-nav="wardrobe">
           <span class="nav-icon">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19.5 21H4.5a1 1 0 0 1-1-1V8.6a1 1 0 0 1 .4-.8l3.1-2.3"/>
@@ -79,29 +70,7 @@
           </span>
           <span class="nav-label">Wardrobe</span>
         </a>
-
-        <a href="#" class="nav-item" data-nav="planner">
-          <span class="nav-icon">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19.5 21H4.5a1 1 0 0 1-1-1V8.6a1 1 0 0 1 .4-.8l3.1-2.3"/>
-              <path d="M15 5.5 18.1 7.8a1 1 0 0 1 .4.8V20"/>
-              <path d="M9 4h6l-1 3H10Z"/>
-              <path d="M9 15h6M9 12h2"/>
-            </svg>
-          </span>
-          <span class="nav-label">Outfit Planner</span>
-        </a>
-
-        <a href="#" class="nav-item" data-nav="saved">
-          <span class="nav-icon">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20.8 8.6c0 4.7-8.8 10-8.8 10s-8.8-5.3-8.8-10a4.6 4.6 0 0 1 8.8-2 4.6 4.6 0 0 1 8.8 2Z"/>
-            </svg>
-          </span>
-          <span class="nav-label">Saved Looks</span>
-        </a>
-
-        <a href="#" class="nav-item" data-nav="history">
+<a href="#" class="nav-item" data-nav="history">
           <span class="nav-icon">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 12a9 9 0 1 0 3-6.7"/>
@@ -115,17 +84,37 @@
 
       <div class="sidebar__user">
         <div class="user-avatar">
-          <img src="assets/images/avatar.jpg" alt="Dinesh" onerror="this.style.display='none'; this.parentElement.classList.add('user-avatar--fallback')" />
+          <img src="../assets/images/avatar.jpg" alt="Dinesh" onerror="this.style.display='none'; this.parentElement.classList.add('user-avatar--fallback')" />
         </div>
         <div class="user-meta">
           <span class="user-name">Dinesh</span>
-          <span class="user-plan">Premium Plan</span>
         </div>
         <span class="user-chevron">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="m9 18 6-6-6-6"/>
           </svg>
         </span>
+      </div>
+
+      <div class="profile-menu" id="profileMenu" aria-hidden="true">
+        <div class="profile-menu__identity">
+          <div class="profile-menu__avatar user-avatar user-avatar--small">
+            <img src="../assets/images/avatar.jpg" alt="Dinesh" onerror="this.style.display='none'; this.parentElement.classList.add('user-avatar--fallback')" />
+          </div>
+          <div class="profile-menu__identity-text">
+            <span class="profile-menu__name">Dinesh</span>
+            <span class="profile-menu__email">email@example.com</span>
+          </div>
+        </div>
+        <div class="profile-menu__divider"></div>
+        <div class="profile-menu__actions">
+  <a href="#" class="profile-menu__item" data-profile-action="manage-account">
+    Manage account
+  </a>
+  <button type="button" class="profile-menu__item profile-menu__item--danger" data-profile-action="logout">
+    Log out
+  </button>
+</div>
       </div>
     </aside>
 
@@ -197,63 +186,7 @@
           </div>
         </div>
       </section>
-
-      <section class="features" id="features">
-        <div class="feature">
-          <span class="feature__icon feature__icon--purple">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
-              <path d="M12 3 L13.6 9.4 L20 11 L13.6 12.6 L12 19 L10.4 12.6 L4 11 L10.4 9.4 Z" fill="currentColor"/>
-            </svg>
-          </span>
-          <span class="feature__text">
-            <span class="feature__title">AI Powered</span>
-            <span class="feature__subtitle">Smart recommendations</span>
-          </span>
-        </div>
-
-        <div class="feature">
-          <span class="feature__icon feature__icon--slate">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-          </span>
-          <span class="feature__text">
-            <span class="feature__title">Personalized</span>
-            <span class="feature__subtitle">Just for your style</span>
-          </span>
-        </div>
-
-        <div class="feature">
-          <span class="feature__icon feature__icon--slate">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-              <path d="M3 6h18"/>
-              <path d="M16 10a4 4 0 0 1-8 0"/>
-            </svg>
-          </span>
-          <span class="feature__text">
-            <span class="feature__title">Trusted Stores</span>
-            <span class="feature__subtitle">Top brands. Best prices.</span>
-          </span>
-        </div>
-
-        <div class="feature">
-          <span class="feature__icon feature__icon--slate">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>
-              <path d="m9 12 2 2 4-4"/>
-            </svg>
-          </span>
-          <span class="feature__text">
-            <span class="feature__title">Secure Checkout</span>
-            <span class="feature__subtitle">Safe &amp; hassle-free</span>
-          </span>
-        </div>
-      </section>
-    </main>
+</main>
   </div>
 
   <!-- Modern ChatGPT-style message template (cloned by script.js, never shown directly) -->
@@ -303,6 +236,9 @@
     </div>
   </template>
 
+
+  <script src="../js/app.js" defer></script>
+  <script src="../js/manageaccount/index.js" defer></script>
   <script src="../js/script.js"></script>
 </body>
 </html>

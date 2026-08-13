@@ -40,6 +40,19 @@ function applyCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
+function compactHistory(history) {
+  return history
+    .filter((item) => item && typeof item === 'object')
+    .slice(-8)
+    .map((item) => ({
+      ...item,
+      content:
+        typeof item.content === 'string'
+          ? item.content.slice(-1400)
+          : item.content,
+    }));
+}
+
 async function respondToChat(req, res) {
   let body = '';
   req.on('data', (chunk) => {
@@ -56,9 +69,9 @@ async function respondToChat(req, res) {
       return;
     }
 
-    const userMessage = (payload.message || '').toString();
-    const history = Array.isArray(payload.history) ? payload.history : [];
+    const history = compactHistory(Array.isArray(payload.history) ? payload.history : []);
     const images = Array.isArray(payload.images) ? payload.images : [];
+    const userMessage = (payload.message || '').toString();
 
     let result;
     try {
@@ -92,9 +105,9 @@ async function respondToChatStream(req, res) {
       return;
     }
 
-    const userMessage = (payload.message || '').toString();
-    const history = Array.isArray(payload.history) ? payload.history : [];
+    const history = compactHistory(Array.isArray(payload.history) ? payload.history : []);
     const images = Array.isArray(payload.images) ? payload.images : [];
+    const userMessage = (payload.message || '').toString();
 
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',

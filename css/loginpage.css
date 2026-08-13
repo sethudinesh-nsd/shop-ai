@@ -1,0 +1,226 @@
+:root{
+  --bg: #ececea;
+  --ink: #1c1c1c;
+  --muted: #8b8b88;
+  --line: #d9d9d6;
+  --field-bg: rgba(255,255,255,0.55);
+  --field-border: rgba(255,255,255,0.9);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  height:100%;
+  margin:0;
+}
+
+body{
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+/* ---------- Card content ---------- */
+.panel{
+  width: 100%;
+  max-width: 320px;
+  padding: 0 16px;
+  text-align:center;
+}
+
+.view.hidden{
+  display:none;
+}
+
+h1{
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.subtitle{
+  margin: 0 0 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.field{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.03),
+    inset 0 1px 0 rgba(255,255,255,0.8);
+  cursor:pointer;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.field.input-field{
+  cursor:text;
+}
+
+.field.input-field input{
+  border:none;
+  outline:none;
+  background:transparent;
+  font-size:13px;
+  width:100%;
+  font-family: inherit;
+  color: var(--ink);
+}
+
+.field.input-field input::placeholder{
+  color: #a9a9a5;
+}
+
+.field .icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+.field .toggle-pw{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  background:none;
+  border:none;
+  padding:0;
+  cursor:pointer;
+}
+
+.field span.label{
+  flex:1;
+  text-align:left;
+  font-weight: 500;
+}
+
+.divider{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin: 12px 0;
+}
+
+.divider .line{
+  flex:1;
+  height:1px;
+  background: var(--line);
+}
+
+.divider span{
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.btn-primary{
+  width:100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border:none;
+  background: #111111;
+  color:#fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor:pointer;
+  margin-top: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+  font-family: inherit;
+}
+
+.btn-primary:hover{
+  background:#000;
+}
+
+.footer{
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.footer a{
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration:none;
+  margin-left: 4px;
+  cursor:pointer;
+}
+
+.footer a:hover{
+  text-decoration: underline;
+}
+
+.stack{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* =========================================================
+   Sign In — Liquid Glass material refinement
+   (scoped to #signinView only; #signupView is untouched)
+   ========================================================= */
+
+#signinView h1{
+  font-size: 20px;
+  margin-bottom: 22px;
+}
+
+#signinView .field{
+  background: rgba(255,255,255,0.28);
+  border: 1px solid rgba(255,255,255,0.5);
+  border-radius: 12px;
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.035),
+    inset 0 1px 0 rgba(255,255,255,0.65),
+    inset 0 -1px 0 rgba(0,0,0,0.02),
+    0 1px 2px rgba(0,0,0,0.03);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+#signinView .field:hover{
+  background: rgba(255,255,255,0.36);
+}
+
+#signinView .field.input-field:focus-within{
+  background: rgba(255,255,255,0.4);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.75),
+    inset 0 -1px 0 rgba(0,0,0,0.02),
+    0 1px 2px rgba(0,0,0,0.03);
+}
+
+#signinView .divider span{
+  color: rgba(28,28,28,0.4);
+}
+
+#signinView .divider .line{
+  background: rgba(0,0,0,0.09);
+}
+
+#signinView .btn-primary{
+  border-radius: 12px;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.15),
+    0 4px 10px rgba(0,0,0,0.08);
+}
+
+#signinView .footer{
+  color: rgba(28,28,28,0.45);
+}

@@ -14,14 +14,11 @@ const STREAM_ENDPOINT = 'http://localhost:3000/api/chat/stream';
 // DOM REFS
 // ==========================================================================
 const hero = document.getElementById('hero');
-const heroIntro = document.getElementById('heroIntro');
-const features = document.getElementById('features');
 const chatMessages = document.getElementById('chatMessages');
 const chatScroll = document.getElementById('chatScroll');
 const searchInput = document.getElementById('searchInput');
 const submitBtn = document.getElementById('submitBtn');
 const messageTemplate = document.getElementById('messageTemplate');
-const themeToggle = document.getElementById('themeToggle');
 const uploadBtn = document.getElementById('uploadBtn');
 const fileInput = document.getElementById('fileInput');
 const attachmentsRow = document.getElementById('attachmentsRow');
@@ -37,23 +34,6 @@ let isSending = false;
 // straight into the messages array, so keep it to { role, content } pairs.
 const conversationHistory = [];
 
-// ==========================================================================
-// THEME TOGGLE
-// ==========================================================================
-function setTheme(button) {
-  if (!button) return;
-  document.documentElement.dataset.theme = button.dataset.theme;
-  themeToggle.querySelectorAll('.theme-toggle__btn').forEach((btn) => {
-    btn.classList.toggle('theme-toggle__btn--active', btn === button);
-  });
-}
-
-if (themeToggle) {
-  themeToggle.addEventListener('click', (event) => {
-    const button = event.target.closest('.theme-toggle__btn');
-    setTheme(button);
-  });
-}
 
 // ==========================================================================
 // NAV — "Home" resets back to the pre-chat state. Real links (e.g.
@@ -80,22 +60,23 @@ const mainEl = document.querySelector('.main');
 function enterChatMode() {
   if (chatModeActive) return;
   chatModeActive = true;
-  hero.classList.add('hero--chat-mode');
-  features.classList.add('features--hidden');
+  if (hero) hero.classList.add('hero--chat-mode');
   if (mainEl) mainEl.classList.add('main--chat-mode');
 }
 
 function resetToHome() {
   chatModeActive = false;
-  hero.classList.remove('hero--chat-mode');
-  features.classList.remove('features--hidden');
+  if (hero) hero.classList.remove('hero--chat-mode');
   if (mainEl) mainEl.classList.remove('main--chat-mode');
-  chatMessages.innerHTML = '';
-  chatScroll.scrollTop = 0;
+  if (chatMessages) chatMessages.innerHTML = '';
+  if (chatScroll) chatScroll.scrollTop = 0;
   conversationHistory.length = 0;
-  searchInput.value = '';
-  searchInput.style.height = 'auto';
+  if (searchInput) {
+    searchInput.value = '';
+    searchInput.style.height = 'auto';
+  }
   clearPendingImages();
+  window.ShopAIManageAccount?.close();
 }
 
 // ==========================================================================
@@ -105,15 +86,20 @@ function resetToHome() {
 // #chatMessages inside it is just a flex column and never scrolls itself.
 
 // True once the user is within `threshold`px of the bottom of the thread.
-// Used to decide whether new content should pull the view down with it —
+// Used to decide whether new content should pull the view down with it — 
 // same rule ChatGPT uses so a manual scroll-up during streaming doesn't get
 // yanked back down on the next token.
 function isNearBottom(threshold = 140) {
+  if (!chatScroll) return true;
   return chatScroll.scrollHeight - chatScroll.scrollTop - chatScroll.clientHeight < threshold;
 }
 
 function scrollToBottom(smooth = true) {
-  chatScroll.scrollTo({ top: chatScroll.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+  if (!chatScroll) return;
+  chatScroll.scrollTo({
+    top: chatScroll.scrollHeight,
+    behavior: smooth ? 'smooth' : 'auto'
+  });
 }
 
 // Only follows new content down if the user hasn't scrolled away to read
@@ -129,6 +115,7 @@ function stickToBottomIfNear() {
 // respects `scroll-margin-top` in CSS for the offset, so it's more robust
 // than computing the scroll position by hand.
 function scrollMessageToTop(messageEl) {
+  if (!messageEl) return;
   messageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -149,34 +136,23 @@ function ensureSpacer() {
   if (!spacer || !spacer.isConnected) {
     spacer = document.createElement('div');
     spacer.className = 'chat-spacer';
-    chatMessages.appendChild(spacer);
+    if (chatMessages) chatMessages.appendChild(spacer);
   } else {
-    chatMessages.appendChild(spacer); // re-pin it as the last child
+    if (chatMessages) chatMessages.appendChild(spacer); // re-pin it as the last child
   }
   return spacer;
 }
 
-// Resizes the trailing spacer so `anchorEl` (the message just scrolled to
-// the top) has exactly one viewport's worth of room below it — filled by
-// real content where there is any, and blank spacer where there isn't yet.
 function updateSpacerFor(anchorEl) {
-  if (!spacer || !anchorEl) return;
+  if (!spacer || !anchorEl || !chatScroll) return;
   const viewportH = chatScroll.clientHeight;
   if (!viewportH) return;
   const anchorTop = anchorEl.getBoundingClientRect().top;
   const lastContentEl = spacer.previousElementSibling || anchorEl;
   const contentBottom = lastContentEl.getBoundingClientRect().bottom;
   const used = contentBottom - anchorTop;
-  const needed = Math.max(0, viewportH - used - 24); // 24px breathing room
+  const needed = Math.max(0, viewportH - used - 24);
   spacer.style.height = `${needed}px`;
-}
-
-function scrollChatToBottom() {
-  scrollToBottom(true);
-}
-
-function timeNow() {
-  return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
 
 // ==========================================================================
@@ -407,24 +383,6 @@ const THINKING_HTML = `
   </div>
 `;
 
-function renderTypingIndicator() {
-  const node = messageTemplate.content.cloneNode(true);
-  const messageEl = node.querySelector('.message');
-  const labelEl = node.querySelector('.message__label-text');
-  const contentEl = node.querySelector('.message__content');
-  const actionsEl = node.querySelector('.message__actions');
-
-  messageEl.classList.add('message--assistant');
-  labelEl.textContent = 'Shop AI';
-  contentEl.innerHTML = THINKING_HTML;
-  // Remove actions for typing indicator
-  if (actionsEl) actionsEl.remove();
-
-  chatMessages.appendChild(node);
-  if (spacer) chatMessages.appendChild(spacer); // keep spacer pinned last
-  stickToBottomIfNear();
-  return messageEl;
-}
 
 
 // ==========================================================================
@@ -596,38 +554,13 @@ async function streamAIResponse(userText, messageEl, anchorEl, images = []) {
   });
 }
 
-// ==========================================================================
-// BACKEND CALL — matches the { type: 'text', text } shape agent.js returns
-// ==========================================================================
-async function fetchAIResponse(userText, images = []) {
-  try {
-    const response = await fetch(API_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: userText, history: conversationHistory, images }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Server returned ${response.status}`);
-    }
-
-    const data = await response.json();
-    const replyText = (data.text || '').trim() || "Sorry, I couldn't get a response from the backend.";
-
-    conversationHistory.push({ role: 'user', content: userText });
-    conversationHistory.push({ role: 'assistant', content: replyText });
-
-    return replyText;
-  } catch (err) {
-    console.error('Chat request failed:', err);
-    return "I couldn't reach the backend. Make sure `node server.js` is running, then open the app from http://localhost:3000.";
-  }
-}
 
 // ==========================================================================
 // SEND FLOW
 // ==========================================================================
 async function handleSend() {
+  if (!searchInput || !submitBtn || !chatMessages || !chatScroll) return;
+
   const value = searchInput.value.trim();
   if ((!value && pendingImages.length === 0) || isSending) return;
 
@@ -712,7 +645,7 @@ if (searchInput) {
 // Keep the reserved gap matching the visible thread area if the window is
 // resized mid-conversation (e.g. rotating a tablet).
 window.addEventListener('resize', () => {
-  if (!chatModeActive || !spacer) return;
+  if (!chatModeActive || !spacer || !chatMessages) return;
   const userMsgs = chatMessages.querySelectorAll('.message--user');
   const lastUserMsg = userMsgs[userMsgs.length - 1];
   if (lastUserMsg) updateSpacerFor(lastUserMsg);
@@ -723,6 +656,7 @@ window.addEventListener('resize', () => {
 // ==========================================================================
 suggestionChips.forEach((chip) => {
   chip.addEventListener('click', () => {
+    if (!searchInput) return;
     searchInput.value = chip.dataset.prompt || '';
     handleSend();
   });
@@ -843,3 +777,4 @@ if (uploadBtn && fileInput) {
     updateUploadBtnState();
   });
 }
+
