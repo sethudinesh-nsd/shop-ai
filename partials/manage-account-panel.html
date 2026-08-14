@@ -4,6 +4,12 @@
   opens it from any page. Stays in the DOM after that — closing just
   toggles the `manage-overlay--open` class so reopening is instant.
   Initialized by js/manageaccount/index.js via window.initManageAccountPanel(root).
+
+  Identity fields below (name/email/avatar) are hardcoded placeholders in
+  the markup, but js/manageaccount/index.js overwrites them from the
+  authenticated Clerk user as soon as the panel opens. The rest of the
+  Profile tab (age, gender, location, height, weight, body type, size,
+  fit) is Shop AI's own future application data — untouched by Clerk.
 -->
 <div class="manage-overlay" id="manageOverlay">
   <div class="manage-overlay__backdrop" data-manage-close></div>
@@ -94,7 +100,7 @@
 
           <div class="manage-profile">
             <div class="manage-avatar">
-              <img src="../assets/images/avatar.jpg" alt="Dinesh" onerror="this.style.display='none'; this.parentElement.style.background='var(--color-sidebar-bg)'" />
+              <img src="../assets/images/avatar.jpg" alt="" onerror="this.style.display='none'; this.parentElement.style.background='var(--color-sidebar-bg)'" />
               <span class="manage-avatar__edit" title="Change photo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 8a2 2 0 0 1 2-2h1.2l.9-1.5A1.5 1.5 0 0 1 9.4 4h5.2a1.5 1.5 0 0 1 1.3.75L16.8 6H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/>
@@ -103,8 +109,8 @@
               </span>
             </div>
             <div>
-              <p class="manage-profile__name">Dinesh</p>
-              <p class="manage-profile__email">email@example.com</p>
+              <p class="manage-profile__name" id="manageProfileName">Loading…</p>
+              <p class="manage-profile__email" id="manageProfileEmail"></p>
               <span class="manage-badge">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 14 9 21 11 14 13 12 20 10 13 3 11 10 9Z"/></svg>
                 Fashion explorer

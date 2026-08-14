@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signing you in…</title>
+<link rel="stylesheet" href="../css/loginpage.css">
+</head>
+<body>
+
+  <div class="panel">
+    <div class="view" id="signinView">
+      <h1>Signing you in…</h1>
+      <p class="subtitle">Just a moment while we finish connecting your Google account.</p>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script>
+    (async () => {
+      try {
+        const clerk = await window.ShopAIAuth.ready;
+        await clerk.handleRedirectCallback({
+          signInForceRedirectUrl: 'index.html',
+          signUpForceRedirectUrl: 'index.html',
+        });
+      } catch (err) {
+        console.error('Google sign-in could not be completed:', err);
+        window.location.href = 'loginpage.html';
+      }
+    })();
+  </script>
+</body>
+</html>

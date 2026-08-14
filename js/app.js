@@ -1,15 +1,61 @@
 /* ==========================================================================
    app.js — shared across every page (Home, Wardrobe, History, ...)
-   Owns: profile-menu open/close, and opening/closing the manage-account
-   overlay so it works identically no matter which page the user is on.
+   Owns: the Clerk auth guard for this page, populating the sidebar/
+   profile-menu identity from the signed-in Clerk user, wiring sign-out to
+   Clerk, and the profile-menu open/close + manage-account overlay logic.
 
    Include this on every page that has the sidebar, e.g.:
+     <script src="../js/auth.js"></script>
      <script src="../js/app.js" defer></script>
      <script src="../js/manageaccount/index.js" defer></script>
    ========================================================================== */
 
 (() => {
   'use strict';
+
+  const LOGIN_URL = 'loginpage.html';
+
+  /* ------------------------------------------------------------------ */
+  /* Auth guard — redirect to loginpage.html if there's no Clerk session,
+     otherwise populate identity and reveal the page (see the inline
+     visibility:hidden set at the top of index.html's <body>). */
+  /* ------------------------------------------------------------------ */
+  function populateIdentity(user) {
+    if (!user) return;
+    const name = user.fullName || user.firstName || 'Account';
+    const email = (user.primaryEmailAddress && user.primaryEmailAddress.emailAddress) || '';
+    const avatarUrl = user.imageUrl || '';
+
+    document.querySelectorAll('.user-name').forEach((el) => { el.textContent = name; });
+    document.querySelectorAll('.profile-menu__name').forEach((el) => { el.textContent = name; });
+    document.querySelectorAll('.profile-menu__email').forEach((el) => { el.textContent = email; });
+    document.querySelectorAll('.user-avatar img, .profile-menu__avatar img').forEach((img) => {
+      if (avatarUrl) {
+        img.src = avatarUrl;
+        img.alt = name;
+        img.style.display = '';
+        img.parentElement.classList.remove('user-avatar--fallback');
+      }
+    });
+
+    const heroName = document.querySelector('.hero__name');
+    if (heroName) heroName.textContent = user.firstName || name;
+  }
+
+  (async () => {
+    try {
+      const clerk = await window.ShopAIAuth.ready;
+      if (!clerk.isSignedIn) {
+        window.location.href = LOGIN_URL;
+        return;
+      }
+      populateIdentity(clerk.user);
+      document.documentElement.style.visibility = '';
+    } catch (err) {
+      console.error('Clerk auth check failed:', err);
+      window.location.href = LOGIN_URL;
+    }
+  })();
 
   const PANEL_PARTIAL_URL = '../partials/manage-account-panel.html';
 
@@ -105,8 +151,17 @@
     }
 
     if (event.target.closest('[data-profile-action="logout"]')) {
-      // No auth yet — wire this up once a backend/session exists.
       setMenuOpen(false);
+      (async () => {
+        try {
+          const clerk = window.ShopAIAuth.clerk || await window.ShopAIAuth.ready;
+          await clerk.signOut();
+        } catch (err) {
+          console.error('Sign out failed:', err);
+        } finally {
+          window.location.href = LOGIN_URL;
+        }
+      })();
     }
   });
 

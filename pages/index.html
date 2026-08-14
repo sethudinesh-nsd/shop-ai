@@ -28,6 +28,10 @@
   <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
 </head>
 <body>
+  <!-- Hidden until app.js confirms a Clerk session exists, so a signed-out
+       visitor never sees a flash of Home before being redirected. -->
+  <script>document.documentElement.style.visibility = 'hidden';</script>
+
   <div class="app">
     <!-- ============================== -->
     <!-- SIDEBAR                        -->
@@ -84,10 +88,10 @@
 
       <div class="sidebar__user">
         <div class="user-avatar">
-          <img src="../assets/images/avatar.jpg" alt="Dinesh" onerror="this.style.display='none'; this.parentElement.classList.add('user-avatar--fallback')" />
+          <img src="../assets/images/avatar.jpg" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('user-avatar--fallback')" />
         </div>
         <div class="user-meta">
-          <span class="user-name">Dinesh</span>
+          <span class="user-name">Account</span>
         </div>
         <span class="user-chevron">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -99,11 +103,11 @@
       <div class="profile-menu" id="profileMenu" aria-hidden="true">
         <div class="profile-menu__identity">
           <div class="profile-menu__avatar user-avatar user-avatar--small">
-            <img src="../assets/images/avatar.jpg" alt="Dinesh" onerror="this.style.display='none'; this.parentElement.classList.add('user-avatar--fallback')" />
+            <img src="../assets/images/avatar.jpg" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('user-avatar--fallback')" />
           </div>
           <div class="profile-menu__identity-text">
-            <span class="profile-menu__name">Dinesh</span>
-            <span class="profile-menu__email">email@example.com</span>
+            <span class="profile-menu__name">Account</span>
+            <span class="profile-menu__email"></span>
           </div>
         </div>
         <div class="profile-menu__divider"></div>
@@ -128,7 +132,7 @@
       <section class="hero" id="hero">
         <!-- Greeting + title: fades out on first message -->
         <div class="hero__intro" id="heroIntro">
-          <p class="hero__greeting">Good afternoon, <span class="hero__name">Dinesh</span> <span class="hero__wave">👋</span></p>
+          <p class="hero__greeting">Good afternoon, <span class="hero__name">there</span> <span class="hero__wave">👋</span></p>
           <p class="hero__voice">Let's find something that feels like you.</p>
           <h1 class="hero__title">What are you looking to wear today?</h1>
 
@@ -237,6 +241,7 @@
   </template>
 
 
+  <script src="../js/auth.js"></script>
   <script src="../js/app.js" defer></script>
   <script src="../js/manageaccount/index.js" defer></script>
   <script src="../js/script.js"></script>
