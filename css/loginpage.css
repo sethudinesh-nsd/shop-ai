@@ -9,6 +9,47 @@
 
 *{ box-sizing: border-box; }
 
+/* ---------- Minimal loading feedback (Continue / Google buttons) ---------- */
+@keyframes btn-spin{ to{ transform: rotate(360deg); } }
+
+.btn-spinner{
+  display:inline-block;
+  width:13px;
+  height:13px;
+  border:2px solid rgba(255,255,255,0.35);
+  border-top-color:#fff;
+  border-radius:50%;
+  margin-right:7px;
+  vertical-align:-2px;
+  animation: btn-spin 0.6s linear infinite;
+}
+
+.btn-secondary .btn-spinner{
+  border-color: rgba(0,0,0,0.15);
+  border-top-color: var(--ink);
+}
+
+/* Google row is a div.field, not a <button> -- swap its icon for a small
+   spinner instead of touching the label, so the row keeps its width. */
+.field .icon{ position: relative; }
+
+.field.is-loading{ opacity: 0.7; }
+
+.field.is-loading .icon svg{ visibility: hidden; }
+
+.field.is-loading .icon::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  margin:auto;
+  width:14px;
+  height:14px;
+  border:2px solid rgba(0,0,0,0.15);
+  border-top-color: var(--ink);
+  border-radius:50%;
+  animation: btn-spin 0.6s linear infinite;
+}
+
 html,body{
   height:100%;
   margin:0;

@@ -2,6 +2,7 @@ const ai = require('./ai');
 const tools = require('./tools');
 const vision = require('./vision');
 const systemPrompt = require('../prompts/systemPrompt');
+const { buildStyleBrief } = require('./styleBrief');
 
 const CHAT_BEHAVIOR = `
 Conversation behavior:
@@ -34,7 +35,7 @@ const TOOL_SELECTOR_HISTORY_TURNS = 3;
 // photos attached to this turn. Vision runs BEFORE the AI replies, so the
 // stylist model always responds as if it had actually seen the photo,
 // without the user needing to describe it.
-async function buildMessages(message, history = [], images = []) {
+async function buildMessages(message, history = [], images = [], profile = null) {
   // Give the tool-selector the last few turns so it can resolve follow-ups
   // ("show me in white" after "black sneakers") into a real, standalone
   // search query — without this, it only ever sees the current message in
@@ -139,8 +140,15 @@ Return exactly:
   }
   const combinedContext = contextBlocks.join('\n\n');
 
+  // The style profile goes in its own system message rather than being
+  // concatenated onto the main prompt: it keeps the boundary between our
+  // instructions and user-supplied data explicit, and it costs nothing when
+  // the profile is empty because we simply omit the message.
+  const styleBrief = buildStyleBrief(profile);
+
   return [
     { role: 'system', content: `${systemPrompt}\n\n${CHAT_BEHAVIOR}` },
+    ...(styleBrief ? [{ role: 'system', content: styleBrief }] : []),
     ...history,
     {
       role: 'user',
@@ -151,8 +159,8 @@ Return exactly:
   ];
 }
 
-async function agent(message, history = [], images = []) {
-  const messages = await buildMessages(message, history, images);
+async function agent(message, history = [], images = [], profile = null) {
+  const messages = await buildMessages(message, history, images, profile);
   const answer = await ai.chat(messages, 500);
 
   return {

@@ -10,6 +10,7 @@ goToSignup.addEventListener('click', (e) => {
   signupView.classList.remove('hidden');
   document.title = 'Sign up';
   resetSignin();
+  resetSignup();
 });
 
 goToSignin.addEventListener('click', (e) => {
@@ -75,11 +76,32 @@ function setBusy(button, busy, busyLabel) {
     // which previously froze this at the very first busy call ("Create
     // account") and made every later step revert to that stale text.
     button.dataset.originalLabel = button.textContent;
-    button.textContent = busyLabel || 'Please wait…';
+    button.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span>${busyLabel || 'Please wait…'}`;
     button.disabled = true;
   } else {
     button.textContent = button.dataset.originalLabel || button.textContent;
     button.disabled = false;
+  }
+}
+
+// The Google option is a div.field, not a <button>, so it gets a small
+// spinner over its icon instead of the inline text spinner above --
+// keeps both "Continue" and "Continue with Google" feeling equally alive
+// while a request is in flight, instead of sitting there looking inert.
+function setFieldBusy(fieldEl, busy) {
+  if (!fieldEl) return;
+  fieldEl.classList.toggle('is-loading', busy);
+  fieldEl.style.pointerEvents = busy ? 'none' : '';
+}
+
+// Dispatches to whichever busy-state helper matches the trigger element,
+// so callers don't need to know if it's a <button> or a .field div.
+function setTriggerBusy(el, busy, busyLabel) {
+  if (!el) return;
+  if (el.classList.contains('field')) {
+    setFieldBusy(el, busy);
+  } else {
+    setBusy(el, busy, busyLabel);
   }
 }
 
@@ -140,6 +162,29 @@ function buildButton({ text, className }) {
 
 const LOCK_ICON = '<rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>';
 const CODE_ICON = '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 9h8M8 13h5"/>';
+const EYE_OPEN_PATH = '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>';
+const EYE_CLOSED_PATH = '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.6 21.6 0 0 1 5.06-6.06M9.9 4.24A10.94 10.94 0 0 1 12 5c7 0 11 7 11 7a21.6 21.6 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 1l22 22" stroke-linecap="round"/>';
+
+// Same markup as the sign-up password field (icon + input + eye toggle),
+// used for the sign-in password step so both flows behave identically.
+function buildPasswordFieldRow({ id, placeholder }) {
+  const { field, input } = buildFieldRow({ id, type: 'password', placeholder, iconPath: LOCK_ICON });
+
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'toggle-pw';
+  toggle.setAttribute('aria-label', 'Show password');
+  toggle.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9a9a96" stroke-width="1.8">${EYE_OPEN_PATH}</svg>`;
+  toggle.addEventListener('click', () => {
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    toggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+    toggle.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9a9a96" stroke-width="1.8">${isPassword ? EYE_CLOSED_PATH : EYE_OPEN_PATH}</svg>`;
+  });
+  field.appendChild(toggle);
+
+  return { field, input };
+}
 
 // If a session already exists, skip straight to Home.
 (async () => {
@@ -192,11 +237,9 @@ function renderSigninStep() {
   }
 
   if (signinStep === 'password') {
-    const { field, input } = buildFieldRow({
+    const { field, input } = buildPasswordFieldRow({
       id: 'signinPwInput',
-      type: 'password',
       placeholder: 'Enter your password',
-      iconPath: LOCK_ICON,
     });
     signinExtra.appendChild(field);
     signinSubmitBtn.textContent = 'Sign in';
@@ -212,7 +255,7 @@ function renderSigninStep() {
     signinExtra.appendChild(info);
 
     const continueWithGoogle = buildButton({ text: 'Continue with Google', className: 'btn-secondary' });
-    continueWithGoogle.addEventListener('click', () => startGoogleOAuth('signin'));
+    continueWithGoogle.addEventListener('click', () => startGoogleOAuth('signin', continueWithGoogle));
     signinExtra.appendChild(continueWithGoogle);
 
     if (signinEmailCodeFactor && signinEmailCodeFactor.emailAddressId) {
@@ -234,6 +277,12 @@ function renderSigninStep() {
       iconPath: CODE_ICON,
     });
     input.inputMode = 'numeric';
+    input.maxLength = 6;
+    input.addEventListener('input', () => {
+      if (input.value.trim().length === 6 && !signinSubmitBtn.disabled) {
+        handleSigninSubmit();
+      }
+    });
     signinExtra.appendChild(field);
 
     const resend = document.createElement('a');
@@ -407,13 +456,17 @@ function resetSignup() {
   pwInput.value = '';
   fullNameInput.closest('.field').style.display = '';
   signupEmailInput.closest('.field').style.display = '';
-  pwInput.closest('.field').style.display = '';
+  pwInput.closest('.field').style.display = 'none';
   signupExtra.innerHTML = '';
-  signupSubmitBtn.textContent = 'Create account';
+  signupSubmitBtn.textContent = 'Continue';
   setBusy(signupSubmitBtn, false);
   delete signupSubmitBtn.dataset.originalLabel;
   clearMessage('signupErrorArea');
 }
+
+// Apply the collapsed step-1 layout immediately, so the password field is
+// hidden from the very first paint (not just after a view switch).
+resetSignup();
 
 function splitFullName(fullName) {
   const parts = fullName.trim().split(/\s+/);
@@ -422,13 +475,55 @@ function splitFullName(fullName) {
   return { firstName, lastName };
 }
 
+function startSignupCodeStep() {
+  fullNameInput.closest('.field').style.display = 'none';
+  signupEmailInput.closest('.field').style.display = 'none';
+  pwInput.closest('.field').style.display = 'none';
+
+  signupExtra.innerHTML = '';
+  const { field, input } = buildFieldRow({
+    id: 'signupCodeInput',
+    type: 'text',
+    placeholder: 'Enter the 6-digit code',
+    iconPath: CODE_ICON,
+  });
+  input.inputMode = 'numeric';
+  input.maxLength = 6;
+  input.addEventListener('input', () => {
+    if (input.value.trim().length === 6 && !signupSubmitBtn.disabled) {
+      handleSignupSubmit();
+    }
+  });
+  signupExtra.appendChild(field);
+
+  const resend = document.createElement('a');
+  resend.href = '#';
+  resend.textContent = 'Resend code';
+  resend.style.cssText = 'display:block;margin-top:2px;font-size:12px;font-weight:600;color:var(--ink);text-decoration:none;';
+  resend.addEventListener('click', async (e) => {
+    e.preventDefault();
+    try {
+      const c = await getClerk();
+      await c.client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      showMessage('signupErrorArea', 'A new code has been sent.', 'info');
+    } catch (err) {
+      showMessage('signupErrorArea', friendlyErrorMessage(err, 'Could not resend the code. Try again shortly.'), 'error');
+    }
+  });
+  signupExtra.appendChild(resend);
+
+  signupSubmitBtn.textContent = 'Verify email';
+  signupStep = 'verify';
+  input.focus();
+}
+
 async function handleSignupSubmit() {
   clearMessage('signupErrorArea');
 
+  // ---- Step 1: full name + email ---------------------------------------
   if (signupStep === 'details') {
     const fullName = fullNameInput.value.trim();
     const email = signupEmailInput.value.trim();
-    const password = pwInput.value;
 
     if (!fullName) {
       showMessage('signupErrorArea', 'Enter your full name.', 'error');
@@ -438,6 +533,46 @@ async function handleSignupSubmit() {
       showMessage('signupErrorArea', 'Please enter a valid email address.', 'error');
       return;
     }
+
+    setBusy(signupSubmitBtn, true, 'Checking…');
+    try {
+      const clerk = await getClerk();
+      // Same lookup the sign-in flow already uses: if signIn.create succeeds
+      // for this identifier, an account already exists.
+      try {
+        await clerk.client.signIn.create({ identifier: email });
+        showMessage('signupErrorArea', 'This email is already registered. Please sign in instead.', 'error');
+        return;
+      } catch (lookupErr) {
+        const code = lookupErr && lookupErr.errors && lookupErr.errors[0] && lookupErr.errors[0].code;
+        if (code !== 'form_identifier_not_found') {
+          showMessage('signupErrorArea', friendlyErrorMessage(lookupErr, 'Something went wrong. Please try again.'), 'error');
+          return;
+        }
+        // Not found -- email is available, advance to the password step.
+      }
+
+      fullNameInput.closest('.field').style.display = 'none';
+      signupEmailInput.closest('.field').style.display = 'none';
+      pwInput.closest('.field').style.display = '';
+      pwInput.value = '';
+      signupSubmitBtn.textContent = 'Create account';
+      signupStep = 'password';
+      pwInput.focus();
+    } catch (err) {
+      showMessage('signupErrorArea', friendlyErrorMessage(err, 'Something went wrong. Please try again.'), 'error');
+    } finally {
+      setBusy(signupSubmitBtn, false);
+    }
+    return;
+  }
+
+  // ---- Step 2: password --------------------------------------------------
+  if (signupStep === 'password') {
+    const fullName = fullNameInput.value.trim();
+    const email = signupEmailInput.value.trim();
+    const password = pwInput.value;
+
     if (!password) {
       showMessage('signupErrorArea', 'Create a password to continue.', 'error');
       return;
@@ -452,40 +587,7 @@ async function handleSignupSubmit() {
       if (lastName) signUpParams.lastName = lastName;
       await clerk.client.signUp.create(signUpParams);
       await clerk.client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-
-      fullNameInput.closest('.field').style.display = 'none';
-      signupEmailInput.closest('.field').style.display = 'none';
-      pwInput.closest('.field').style.display = 'none';
-
-      signupExtra.innerHTML = '';
-      const { field, input } = buildFieldRow({
-        id: 'signupCodeInput',
-        type: 'text',
-        placeholder: 'Enter the 6-digit code',
-        iconPath: CODE_ICON,
-      });
-      input.inputMode = 'numeric';
-      signupExtra.appendChild(field);
-
-      const resend = document.createElement('a');
-      resend.href = '#';
-      resend.textContent = 'Resend code';
-      resend.style.cssText = 'display:block;margin-top:2px;font-size:12px;font-weight:600;color:var(--ink);text-decoration:none;';
-      resend.addEventListener('click', async (e) => {
-        e.preventDefault();
-        try {
-          const c = await getClerk();
-          await c.client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-          showMessage('signupErrorArea', 'A new code has been sent.', 'info');
-        } catch (err) {
-          showMessage('signupErrorArea', friendlyErrorMessage(err, 'Could not resend the code. Try again shortly.'), 'error');
-        }
-      });
-      signupExtra.appendChild(resend);
-
-      signupSubmitBtn.textContent = 'Verify email';
-      signupStep = 'verify';
-      input.focus();
+      startSignupCodeStep();
     } catch (err) {
       showMessage('signupErrorArea', friendlyErrorMessage(err, 'Could not create your account. Try again.'), 'error');
     } finally {
@@ -494,7 +596,7 @@ async function handleSignupSubmit() {
     return;
   }
 
-  // signupStep === 'verify'
+  // ---- Step 3: email OTP --------------------------------------------------
   const codeField = document.getElementById('signupCodeInput');
   const code = codeField ? codeField.value.trim() : '';
   if (!code) {
@@ -564,7 +666,8 @@ signupSubmitBtn.addEventListener('click', (e) => {
 const googleBtnSignin = document.getElementById('googleBtnSignin');
 const googleBtnSignup = document.getElementById('googleBtnSignup');
 
-async function startGoogleOAuth(view) {
+async function startGoogleOAuth(view, triggerEl) {
+  setTriggerBusy(triggerEl, true, 'Connecting…');
   try {
     const clerk = await getClerk();
     const redirectUrl = new URL('sso-callback.html', window.location.href).toString();
@@ -586,12 +689,15 @@ async function startGoogleOAuth(view) {
   } catch (err) {
     const areaId = view === 'signin' ? 'signinErrorArea' : 'signupErrorArea';
     showMessage(areaId, friendlyErrorMessage(err, 'Google sign-in failed. Try again.'), 'error');
+    // Only clear on failure -- a successful call navigates the page away,
+    // so there's nothing left here to un-busy.
+    setTriggerBusy(triggerEl, false);
   }
 }
 
 if (googleBtnSignin) {
-  googleBtnSignin.addEventListener('click', () => startGoogleOAuth('signin'));
+  googleBtnSignin.addEventListener('click', () => startGoogleOAuth('signin', googleBtnSignin));
 }
 if (googleBtnSignup) {
-  googleBtnSignup.addEventListener('click', () => startGoogleOAuth('signup'));
+  googleBtnSignup.addEventListener('click', () => startGoogleOAuth('signup', googleBtnSignup));
 }

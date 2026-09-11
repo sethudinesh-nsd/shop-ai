@@ -1,15 +1,19 @@
 /* ==========================================================================
    WARDROBE PAGE — styles specific to wardrobe.html only.
-   Relies on style.css for shared tokens (--color-*, --radius-*, --font-family)
-   and the sidebar/topbar/glass-panel design system. Nothing here should
-   duplicate those — only wardrobe-specific layout.
+   Relies on variable.css + style.css for shared tokens (--color-*,
+   --radius-*, --shadow-*, --glass-blur, --font-family) and the
+   sidebar/topbar/glass-panel design system already established on the
+   Home page. Nothing here should duplicate those — only wardrobe-specific
+   layout. Apple Liquid Glass language: flat translucent backgrounds,
+   subtle backdrop blur, thin bright edges, natural shadows — no
+   gradients, no purple/blue tint, no glow.
    ========================================================================== */
 
 .wardrobe-view {
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 8px 4px 40px;
+  padding: 8px 32px 56px;
 }
 
 .wardrobe-view__header {
@@ -22,18 +26,16 @@
 }
 
 .wardrobe-view__voice {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 15px;
-  color: var(--color-purple);
-  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--label-secondary);
+  margin: 0 0 8px;
 }
 
 .wardrobe-view__title {
-  font-family: 'Fraunces', serif;
-  font-weight: 500;
-  font-size: 28px;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.028em;
   margin: 0;
   color: var(--color-text-primary);
 }
@@ -45,18 +47,17 @@
   padding: 11px 18px;
   border-radius: var(--radius-pill);
   border: none;
-  background: var(--color-text-primary);
-  color: #fff;
-  font-size: 13.5px;
-  font-weight: 600;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+  font-size: 13px;
+  font-weight: 550;
+  letter-spacing: -0.01em;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.18s ease, transform 0.18s ease;
+  transition: background var(--dur) var(--ease), opacity var(--dur) var(--ease);
 }
-.wardrobe-view__add-btn:hover {
-  background: var(--color-purple);
-  transform: translateY(-1px);
-}
+.wardrobe-view__add-btn:hover { background: var(--btn-primary-bg-hover); }
+.wardrobe-view__add-btn:active { opacity: 0.7; }
 
 /* --- Empty state --- */
 .wardrobe-empty {
@@ -67,65 +68,72 @@
   gap: 6px;
   padding: 70px 24px;
   color: var(--color-text-secondary);
-  background: rgba(255, 255, 255, 0.5);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: var(--lg-tint);
+  -webkit-backdrop-filter: var(--lg-blur);
+  backdrop-filter: var(--lg-blur);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-xl);
 }
 .wardrobe-empty[hidden] { display: none; }
-.wardrobe-empty svg { color: var(--color-purple); margin-bottom: 6px; }
+.wardrobe-empty svg { color: var(--color-text-faint); margin-bottom: 6px; }
 .wardrobe-empty__title {
-  font-family: 'Fraunces', serif;
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 15.5px;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
 }
 .wardrobe-empty__subtitle {
-  font-size: 13.5px;
+  font-size: 13px;
   max-width: 340px;
   line-height: 1.6;
   margin: 0 0 14px;
 }
 .wardrobe-empty__cta {
-  padding: 10px 20px;
+  padding: 9px 18px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--color-border);
-  background: #fff;
+  border: none;
+  background: var(--btn-primary-bg);
   font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-primary);
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  color: var(--btn-primary-fg);
   cursor: pointer;
-  transition: border-color 0.18s ease, transform 0.18s ease;
+  transition: background var(--dur) var(--ease), opacity var(--dur) var(--ease);
 }
-.wardrobe-empty__cta:hover {
-  border-color: var(--color-purple);
-  transform: translateY(-1px);
-}
+.wardrobe-empty__cta:hover { background: var(--btn-primary-bg-hover); }
+.wardrobe-empty__cta:active { opacity: 0.7; }
 
 /* --- Grid + cards --- */
 .wardrobe-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px;
+  gap: 14px;
+  align-items: start;
 }
 
 .wardrobe-item {
-  background: #fff;
-  border-radius: var(--radius-md);
+  background: var(--lg-tint);
+  -webkit-backdrop-filter: var(--lg-blur);
+  backdrop-filter: var(--lg-blur);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  border: 1px solid rgba(22, 24, 29, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--hairline);
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  animation: wardrobe-item-in 0.34s var(--ease-glass) both;
+}
+@keyframes wardrobe-item-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .wardrobe-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 28px rgba(31, 38, 135, 0.14);
+  background: var(--lg-tint-hi);
+  border-color: var(--hairline-strong);
 }
 
 .wardrobe-item__img-wrap {
   position: relative;
   aspect-ratio: 1 / 1;
+  background: var(--color-sidebar-bg);
 }
 .wardrobe-item__img {
   width: 100%;
@@ -141,8 +149,8 @@
   height: 24px;
   border-radius: 50%;
   border: none;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  background: rgba(0,0,0,0.55);
+  color: var(--color-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,8 +199,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(20, 19, 26, 0.32);
-  color: #fff;
+  background: rgba(0,0,0,0.5);
+  color: var(--color-white);
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -205,6 +213,13 @@
   border-top-color: #fff;
   animation: wardrobe-spin 0.7s linear infinite;
 }
+.wardrobe-item--analyzing .wardrobe-item__analyzing-overlay {
+  animation: wardrobe-overlay-in 0.18s ease both;
+}
+@keyframes wardrobe-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 @keyframes wardrobe-spin {
   to { transform: rotate(360deg); }
 }
@@ -216,16 +231,16 @@
   padding: 2px 8px;
   border-radius: var(--radius-pill);
   background: var(--color-purple-light);
-  color: var(--color-purple);
+  color: var(--color-purple-dark);
   font-size: 10.5px;
   font-weight: 600;
 }
 .wardrobe-item__confidence--low {
-  background: rgba(20, 19, 26, 0.06);
+  background: rgba(255,255,255,0.08);
   color: var(--color-text-secondary);
 }
 .wardrobe-item__confidence--manual {
-  background: rgba(20, 19, 26, 0.06);
+  background: rgba(255,255,255,0.08);
   color: var(--color-text-secondary);
 }
 
@@ -236,11 +251,12 @@
 .wardrobe-item__details summary {
   font-size: 11px;
   font-weight: 600;
-  color: var(--color-purple);
+  color: var(--color-text-secondary);
   cursor: pointer;
   list-style: none;
   user-select: none;
 }
+.wardrobe-item__details summary:hover { color: var(--color-text-primary); }
 .wardrobe-item__details summary::-webkit-details-marker { display: none; }
 .wardrobe-item__details summary::before {
   content: '+ ';
@@ -268,15 +284,45 @@
   letter-spacing: 0.03em;
 }
 .wardrobe-item__field input {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 5px 7px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
   font-size: 11.5px;
   font-family: var(--font-family);
-  color: var(--color-text-primary);
-  background: #fff;
+  color: var(--field-fg);
+  background: var(--field-bg);
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 .wardrobe-item__field input:focus {
   outline: none;
-  border-color: var(--color-purple);
+  background: var(--field-bg-focus);
+  border-color: var(--hairline-strong);
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .wardrobe-view { padding: 6px 18px 36px; }
+  .wardrobe-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+}
+
+/* --- Loading spinner state (first-ever fetch, avoids empty-state flash) --- */
+.wardrobe-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 70px 24px;
+}
+.wardrobe-loading[hidden] { display: none; }
+
+.wardrobe-loading__spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2.5px solid var(--fill-tertiary);
+  border-top-color: var(--color-text-primary);
+  animation: wardrobe-loading-spin 0.7s linear infinite;
+}
+
+@keyframes wardrobe-loading-spin {
+  to { transform: rotate(360deg); }
 }

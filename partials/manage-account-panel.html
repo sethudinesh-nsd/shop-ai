@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Account</title>
+</head>
+<body>
 <!--
   Manage-account overlay.
   Injected by js/app.js (openPanel()) into <body> the first time the user
@@ -27,7 +35,7 @@
       <p class="manage-nav__subtitle">Manage your information and preferences that power Shop AI.</p>
 
       <div class="manage-tabs" role="tablist">
-        <button class="manage-tab manage-tab--active" data-tab="profile" role="tab" aria-selected="true">
+        <button class="manage-tab manage-tab--active" id="manageTabProfile" data-tab="profile" role="tab" aria-selected="true" aria-controls="tab-profile">
           <span class="manage-tab__icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="8" r="3.4"/>
@@ -36,32 +44,13 @@
           </span>
           Profile
         </button>
-        <button class="manage-tab" data-tab="security" role="tab" aria-selected="false">
+        <button class="manage-tab" id="manageTabSecurity" data-tab="security" role="tab" aria-selected="false" aria-controls="tab-security">
           <span class="manage-tab__icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 3l7 3v5.5c0 4.6-3 8.2-7 9.5-4-1.3-7-4.9-7-9.5V6z"/>
             </svg>
           </span>
           Security
-        </button>
-        <button class="manage-tab" data-tab="account" role="tab" aria-selected="false">
-          <span class="manage-tab__icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="6" width="18" height="13" rx="2"/>
-              <path d="M3 10h18"/>
-            </svg>
-          </span>
-          Account
-        </button>
-        <button class="manage-tab" data-tab="connected" role="tab" aria-selected="false">
-          <span class="manage-tab__icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 15 15 9"/>
-              <path d="M11 6l1-1a3.5 3.5 0 0 1 5 5l-1 1"/>
-              <path d="M13 18l-1 1a3.5 3.5 0 0 1-5-5l1-1"/>
-            </svg>
-          </span>
-          Connected accounts
         </button>
       </div>
 
@@ -82,39 +71,89 @@
     <div class="manage-content">
 
       <!-- ---------- PROFILE TAB ---------- -->
-      <section class="manage-section manage-section--active" id="tab-profile">
+      <section class="manage-section manage-section--active" id="tab-profile" role="tabpanel" aria-labelledby="manageTabProfile" tabindex="0">
 
-        <!-- 1. Profile -->
+        <!-- 1. Profile
+             No Edit/Cancel/Save controls here on purpose: Name and Bio
+             are always-live inline fields now (see initInlineRowEditing
+             in js/manageaccount/index.js) — click the value, type,
+             Enter/blur saves, Escape restores. The old per-card
+             edit-toggle button markup is intentionally removed rather
+             than just hidden; setCardEditing()/initCardEditing() are
+             left in index.js untouched (they simply no-op with no
+             [data-edit-toggle] button left to find) in case another
+             card still needs that flow later. -->
         <div class="manage-card" data-card="identity">
           <div class="manage-card__header">
-            <h2 class="manage-card__title">1. Profile</h2>
-            <div class="manage-card__actions">
-              <button class="manage-edit-btn manage-edit-btn--edit" data-edit-toggle>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                Edit
-              </button>
-              <button class="manage-edit-btn manage-edit-btn--cancel" data-edit-cancel>Cancel</button>
-              <button class="manage-edit-btn manage-edit-btn--save" data-edit-save>Save</button>
-            </div>
+            <h2 class="manage-card__title manage-card__title--hidden">Profile</h2>
           </div>
 
           <div class="manage-profile">
             <div class="manage-avatar">
-              <img src="../assets/images/avatar.jpg" alt="" onerror="this.style.display='none'; this.parentElement.style.background='var(--color-sidebar-bg)'" />
-              <span class="manage-avatar__edit" title="Change photo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 8a2 2 0 0 1 2-2h1.2l.9-1.5A1.5 1.5 0 0 1 9.4 4h5.2a1.5 1.5 0 0 1 1.3.75L16.8 6H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/>
-                  <circle cx="12" cy="13" r="3.2"/>
-                </svg>
-              </span>
-            </div>
-            <div>
-              <p class="manage-profile__name" id="manageProfileName">Loading…</p>
+
+  <img
+    alt=""
+    onerror="this.style.display='none'; this.parentElement.style.background='var(--color-sidebar-bg)'"
+  />
+
+  <button
+    type="button"
+    class="manage-avatar__edit"
+    data-photo-change
+    title="Change photo"
+    aria-label="Change profile photo"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M4 8a2 2 0 0 1 2-2h1.2l.9-1.5A1.5 1.5 0 0 1 9.4 4h5.2a1.5 1.5 0 0 1 1.3.75L16.8 6H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/>
+      <circle cx="12" cy="13" r="3.2"/>
+    </svg>
+  </button>
+
+  <input
+    class="manage-photo-input"
+    data-photo-input
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    hidden
+  />
+
+</div>
+            <div class="manage-profile__info">
+              <div class="manage-field manage-field--plain manage-field--name" data-field="name">
+                <div class="manage-field__body">
+                  <span class="manage-field__label">Name</span>
+                  <span class="manage-field__value" id="manageProfileName">Loading…</span>
+                  <input
+                    class="manage-field__input"
+                    id="manageProfileNameInput"
+                    type="text"
+                    maxlength="60"
+                    placeholder="Your name"
+                  />
+                </div>
+              </div>
               <p class="manage-profile__email" id="manageProfileEmail"></p>
-              <span class="manage-badge">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 14 9 21 11 14 13 12 20 10 13 3 11 10 9Z"/></svg>
-                Fashion explorer
-              </span>
+            </div>
+          </div>
+
+          <div class="manage-field manage-field--plain manage-field--bio" data-field="bio">
+            <div class="manage-field__body">
+              <span class="manage-field__label">Bio</span>
+              <span class="manage-field__value manage-field__value--bio" id="manageProfileBio">Add a short bio so Shop AI (and anyone who sees your profile) knows your style.</span>
+              <textarea
+                class="manage-field__input manage-field__textarea"
+                id="manageProfileBioInput"
+                maxlength="160"
+                rows="2"
+                placeholder="Tell us a little about your style..."
+              ></textarea>
             </div>
           </div>
         </div>
@@ -122,57 +161,104 @@
         <!-- 2. Basic information -->
         <div class="manage-card" data-card="basic">
           <div class="manage-card__header">
-            <h2 class="manage-card__title">2. Basic information</h2>
-            <div class="manage-card__actions">
-              <button class="manage-edit-btn manage-edit-btn--edit" data-edit-toggle>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                Edit
-              </button>
-              <button class="manage-edit-btn manage-edit-btn--cancel" data-edit-cancel>Cancel</button>
-              <button class="manage-edit-btn manage-edit-btn--save" data-edit-save>Save</button>
-            </div>
+            <h2 class="manage-card__title">About you</h2>
           </div>
 
           <div class="manage-grid">
-            <div class="manage-field">
+            <div class="manage-field manage-field--dob" data-field="age">
               <span class="manage-field__icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>
               </span>
-              <div class="manage-field__body">
+              <div class="manage-field__body" data-dob-trigger>
                 <span class="manage-field__label">Age</span>
-                <span class="manage-field__value">21</span>
-                <input class="manage-field__input" type="number" value="21" />
+                <span class="manage-field__value" data-dob-age-value>21</span>
+                <input type="hidden" class="manage-field__input" data-dob-age-input value="21" />
+              </div>
+              <div class="manage-field__chips manage-field__chips--dob" data-dob-popover data-dob-year="2005" data-dob-month="1" data-dob-day="1">
+                <div class="manage-field__chips-header">
+                  <span class="manage-field__chips-label">Date of birth</span>
+                </div>
+                <div class="manage-field__dob-wheels">
+                  <div class="manage-field__wheel" data-dob-wheel="month">
+                    <div class="manage-field__wheel-track" data-dob-track="month"></div>
+                  </div>
+                  <div class="manage-field__wheel" data-dob-wheel="day">
+                    <div class="manage-field__wheel-track" data-dob-track="day"></div>
+                  </div>
+                  <div class="manage-field__wheel" data-dob-wheel="year">
+                    <div class="manage-field__wheel-track" data-dob-track="year"></div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="manage-field">
+            <div class="manage-field manage-field--chip" data-field="gender">
               <span class="manage-field__icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.4-3.6 4.2-5.5 7-5.5s5.6 1.9 7 5.5"/></svg>
               </span>
               <div class="manage-field__body">
                 <span class="manage-field__label">Gender</span>
-                <span class="manage-field__value">Male</span>
-                <select class="manage-field__select">
-                  <option>Male</option>
-                  <option>Female</option>
-                  <option>Non-binary</option>
-                  <option>Prefer not to say</option>
-                </select>
+                <span class="manage-field__value" data-chip-value>Male</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="single">
+                  <button type="button" class="manage-field__chip manage-field__chip--selected" data-chip-option>Male</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Female</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Non-binary</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Prefer not to say</button>
+                </div>
               </div>
             </div>
 
-            <div class="manage-field">
+            <div class="manage-field" data-field="city">
               <span class="manage-field__icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.4"/></svg>
               </span>
               <div class="manage-field__body">
-                <span class="manage-field__label">Location</span>
-                <span class="manage-field__value">Hyderabad, India</span>
-                <input class="manage-field__input" type="text" value="Hyderabad, India" />
+                <span class="manage-field__label">City</span>
+                <span class="manage-field__value">Hyderabad</span>
+                <input class="manage-field__input" type="text" value="Hyderabad" />
               </div>
             </div>
 
-            <div class="manage-field">
+            <div class="manage-field" data-field="country">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.6 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.6-3.6-9s1.2-6.5 3.6-9Z"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Country</span>
+                <span class="manage-field__value">India</span>
+                <input class="manage-field__input" type="text" value="India" />
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip manage-field--span2" data-field="work-status">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">What best describes your work?</span>
+                <span class="manage-field__value" data-chip-value>Not set</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="single">
+                  <button type="button" class="manage-field__chip" data-chip-option>Student</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Working professional</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Freelancer / self-employed</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Business owner</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Homemaker</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Between jobs</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Prefer not to say</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Body & fit -->
+        <div class="manage-card" data-card="fit">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">Body &amp; fit</h2>
+          </div>
+
+          <div class="manage-grid">
+            <div class="manage-field" data-field="height">
               <span class="manage-field__icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
               </span>
@@ -183,7 +269,7 @@
               </div>
             </div>
 
-            <div class="manage-field">
+            <div class="manage-field" data-field="weight">
               <span class="manage-field__icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
               </span>
@@ -193,69 +279,459 @@
                 <input class="manage-field__input" type="text" value="65 kg" />
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- 3. Body & fit -->
-        <div class="manage-card" data-card="fit">
-          <div class="manage-card__header">
-            <h2 class="manage-card__title">3. Body &amp; fit</h2>
-            <div class="manage-card__actions">
-              <button class="manage-edit-btn manage-edit-btn--edit" data-edit-toggle>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                Edit
-              </button>
-              <button class="manage-edit-btn manage-edit-btn--cancel" data-edit-cancel>Cancel</button>
-              <button class="manage-edit-btn manage-edit-btn--save" data-edit-save>Save</button>
-            </div>
-          </div>
-
-          <div class="manage-grid">
-            <div class="manage-field">
+            <div class="manage-field manage-field--chip" data-field="body-type">
               <span class="manage-field__icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 8v6M9 11h6M9 20l3-6 3 6"/></svg>
               </span>
               <div class="manage-field__body">
                 <span class="manage-field__label">Body type</span>
-                <span class="manage-field__value">Athletic</span>
-                <select class="manage-field__select">
-                  <option>Slim</option>
-                  <option selected>Athletic</option>
-                  <option>Regular</option>
-                  <option>Broad</option>
-                  <option>Plus</option>
-                </select>
+                <span class="manage-field__value" data-chip-value>Athletic</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="single">
+                  <button type="button" class="manage-field__chip" data-chip-option>Slim</button>
+                  <button type="button" class="manage-field__chip manage-field__chip--selected" data-chip-option>Athletic</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Regular</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Broad</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Plus</button>
+                </div>
               </div>
             </div>
 
-            <div class="manage-field">
+            <div class="manage-field manage-field--chip" data-field="top-size">
               <span class="manage-field__icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12l-1.5 5H7.5Z"/><path d="M7.5 9 6 20h12l-1.5-11"/></svg>
               </span>
               <div class="manage-field__body">
-                <span class="manage-field__label">Usual size</span>
-                <span class="manage-field__value">M (Medium)</span>
-                <select class="manage-field__select">
-                  <option>XS</option><option>S</option>
-                  <option selected>M (Medium)</option>
-                  <option>L</option><option>XL</option><option>XXL</option>
-                </select>
+                <span class="manage-field__label">Top / shirt size</span>
+                <span class="manage-field__value" data-chip-value>M</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="single">
+                  <button type="button" class="manage-field__chip" data-chip-option>XS</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>S</button>
+                  <button type="button" class="manage-field__chip manage-field__chip--selected" data-chip-option>M</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>L</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>XL</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>XXL</button>
+                </div>
               </div>
             </div>
 
-            <div class="manage-field">
+            <div class="manage-field" data-field="bottom-size">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15V9a2 2 0 0 1 2-2h1l3-3 3 3h3a4 4 0 0 1 4 4v4"/><path d="M4 15h16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Bottom / pants size</span>
+                <span class="manage-field__value">32</span>
+                <input class="manage-field__input" type="text" value="32" placeholder="e.g. 32, M" />
+              </div>
+            </div>
+
+            <div class="manage-field" data-field="shoe-size">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-3.2c0-1 .6-1.9 1.5-2.3l4-1.8c.6-.3 1-.9 1-1.6V7a2 2 0 0 1 2-2h1a4 4 0 0 1 4 4v2.5c0 .9.5 1.7 1.3 2l3 1.2c1 .4 1.7 1.4 1.7 2.5V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Shoe size</span>
+                <span class="manage-field__value">UK 9</span>
+                <input class="manage-field__input" type="text" value="UK 9" placeholder="e.g. UK 9" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Style identity -->
+        <div class="manage-card" data-card="style">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">Style</h2>
+          </div>
+
+          <div class="manage-grid">
+            <div class="manage-field manage-field--chip" data-field="primary-style">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 14 9 21 11 14 13 12 20 10 13 3 11 10 9Z"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Primary style</span>
+                <span class="manage-field__value" data-chip-value>Not set</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="single">
+                  <button type="button" class="manage-field__chip" data-chip-option>Casual</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Streetwear</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Minimalist</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Classic / formal</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Athleisure</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Bohemian</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Preppy</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Edgy / alternative</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Traditional / ethnic</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip manage-field--span2" data-field="secondary-styles">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 14 9 21 11 14 13 12 20 10 13 3 11 10 9Z"/><path d="M19 15v4M17 17h4"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Secondary styles</span>
+                <span class="manage-field__value" data-chip-value>None selected</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="multi">
+                  <button type="button" class="manage-field__chip" data-chip-option>Casual</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Streetwear</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Minimalist</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Classic / formal</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Athleisure</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Bohemian</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Preppy</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Edgy / alternative</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Traditional / ethnic</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip manage-field--span2" data-field="favorite-colors">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18" opacity="0"/><circle cx="9" cy="10" r="1.4" fill="currentColor" stroke="none"/><circle cx="14" cy="9" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1.4" fill="currentColor" stroke="none"/><circle cx="10" cy="15" r="1.4" fill="currentColor" stroke="none"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Favorite colors</span>
+                <span class="manage-field__value" data-chip-value>None selected</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="multi">
+                  <button type="button" class="manage-field__chip" data-chip-option>Black</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>White</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Grey</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Navy</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Blue</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Red</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Green</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Yellow</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Beige / tan</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Brown</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Pink</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Purple</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Orange</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Multicolor / print</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip manage-field--span2" data-field="colors-to-avoid">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Colors to avoid</span>
+                <span class="manage-field__value" data-chip-value>None selected</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="multi">
+                  <button type="button" class="manage-field__chip" data-chip-option>Black</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>White</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Grey</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Navy</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Blue</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Red</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Green</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Yellow</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Beige / tan</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Brown</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Pink</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Purple</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Orange</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Multicolor / print</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip manage-field--span2" data-field="preferred-fits">
               <span class="manage-field__icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12l-1.5 5H7.5Z"/><path d="M7.5 9 6 20h12l-1.5-11"/></svg>
               </span>
               <div class="manage-field__body">
-                <span class="manage-field__label">Preferred fit</span>
-                <span class="manage-field__value">Regular</span>
-                <select class="manage-field__select">
-                  <option>Slim fit</option>
-                  <option selected>Regular</option>
-                  <option>Relaxed</option>
-                  <option>Oversized</option>
-                </select>
+                <span class="manage-field__label">Preferred fits</span>
+                <span class="manage-field__value" data-chip-value>None selected</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="multi">
+                  <button type="button" class="manage-field__chip" data-chip-option>Slim</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Regular</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Relaxed</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Oversized</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Tailored</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip manage-field--span2" data-field="preferred-clothing-types">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 21H4.5a1 1 0 0 1-1-1V8.6a1 1 0 0 1 .4-.8l3.1-2.3"/><path d="M15 5.5 18.1 7.8a1 1 0 0 1 .4.8V20"/><path d="M9 4h6l-1 3H10Z"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Preferred clothing types</span>
+                <span class="manage-field__value" data-chip-value>None selected</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="multi">
+                  <button type="button" class="manage-field__chip" data-chip-option>Tops</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Bottoms</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Dresses</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Outerwear</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Ethnic wear</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Activewear</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Formalwear</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Loungewear</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Accessories</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--tags" data-field="favorite-brands">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.6L21 11l-6.4 2.4L12 20l-2.6-6.6L3 11l6.4-2.4Z"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Favorite brands</span>
+                <span class="manage-field__value" data-tag-value>None added</span>
+                <div class="manage-field__tags" data-tag-group>
+                  <div class="manage-field__tag-list" data-tag-list></div>
+                  <input type="text" class="manage-field__tag-input" data-tag-input placeholder="Type a brand, press Enter" />
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--tags" data-field="brands-to-avoid">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Brands to avoid</span>
+                <span class="manage-field__value" data-tag-value>None added</span>
+                <div class="manage-field__tags" data-tag-group>
+                  <div class="manage-field__tag-list" data-tag-list></div>
+                  <input type="text" class="manage-field__tag-input" data-tag-input placeholder="Type a brand, press Enter" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Lifestyle -->
+        <div class="manage-card" data-card="lifestyle">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">Lifestyle</h2>
+          </div>
+
+          <div class="manage-grid">
+            <div class="manage-field manage-field--chip manage-field--span2" data-field="common-occasions">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Common occasions</span>
+                <span class="manage-field__value" data-chip-value>None selected</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="multi">
+                  <button type="button" class="manage-field__chip" data-chip-option>Everyday / casual</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Work / office</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>College / school</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Party / night out</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Wedding / festive</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Travel</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Gym / sport</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Date night</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Formal event</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip" data-field="dress-code">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12l-1.5 5H7.5Z"/><path d="M7.5 9 6 20h12l-1.5-11"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Typical dress code</span>
+                <span class="manage-field__value" data-chip-value>Not set</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="single">
+                  <button type="button" class="manage-field__chip" data-chip-option>Casual</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Business casual</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Formal</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Smart casual</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>No specific dress code</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip" data-field="climate-preference">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Climate preference</span>
+                <span class="manage-field__value" data-chip-value>Not set</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="single">
+                  <button type="button" class="manage-field__chip" data-chip-option>Hot &amp; humid</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Cold</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Moderate</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Runs hot (prefers light fabrics)</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Runs cold (prefers warm layers)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Shopping preferences -->
+        <div class="manage-card" data-card="shopping">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">Shopping preferences</h2>
+          </div>
+
+          <div class="manage-grid">
+            <div class="manage-field manage-field--chip" data-field="clothing-budget">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/><circle cx="7" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Typical clothing budget</span>
+                <span class="manage-field__value" data-chip-value>Not set</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="single">
+                  <button type="button" class="manage-field__chip" data-chip-option>Under ₹1,000 / month</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>₹1,000 – 3,000</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>₹3,000 – 7,000</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>₹7,000 – 15,000</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>₹15,000+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip" data-field="price-range">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 7.5c0-1.4 1.6-2.5 4-2.5s4 1 4 2.4c0 3-8 1.6-8 4.6 0 1.4 1.8 2.5 4 2.5s4-1.1 4-2.5"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Preferred price range (per item)</span>
+                <span class="manage-field__value" data-chip-value>Not set</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="single">
+                  <button type="button" class="manage-field__chip" data-chip-option>Under ₹500</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>₹500 – 1,500</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>₹1,500 – 3,000</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>₹3,000 – 7,000</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>₹7,000+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--tags manage-field--span2" data-field="preferred-brands">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.6L21 11l-6.4 2.4L12 20l-2.6-6.6L3 11l6.4-2.4Z"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Preferred brands (where you actually shop)</span>
+                <span class="manage-field__value" data-tag-value>None added</span>
+                <div class="manage-field__tags" data-tag-group>
+                  <div class="manage-field__tag-list" data-tag-list></div>
+                  <input type="text" class="manage-field__tag-input" data-tag-input placeholder="Type a brand, press Enter" />
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip manage-field--span2" data-field="shopping-platforms">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4" fill="currentColor" stroke="none"/><circle cx="17" cy="20" r="1.4" fill="currentColor" stroke="none"/><path d="M3 4h2l2.4 11.2A2 2 0 0 0 9.4 17h7.2a2 2 0 0 0 2-1.6L20 7H6"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Preferred shopping platforms / stores</span>
+                <span class="manage-field__value" data-chip-value>None selected</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="multi">
+                  <button type="button" class="manage-field__chip" data-chip-option>Myntra</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Amazon</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Flipkart</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Ajio</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Nykaa Fashion</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Local / offline stores</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Brand websites</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Other</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip manage-field--span2" data-field="wardrobe-preference">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">New vs. existing wardrobe</span>
+                <span class="manage-field__value" data-chip-value>Not set</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="single">
+                  <button type="button" class="manage-field__chip" data-chip-option>Prefers new items</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Prefers reusing / restyling existing wardrobe</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Mix of both</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. AI preferences -->
+        <div class="manage-card" data-card="ai-preferences">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">AI preferences</h2>
+          </div>
+
+          <div class="manage-grid">
+            <div class="manage-field manage-field--chip manage-field--span2" data-field="ai-priorities">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 14 9 21 11 14 13 12 20 10 13 3 11 10 9Z"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">What should Shop AI prioritize?</span>
+                <span class="manage-field__value" data-chip-value>None selected</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="multi">
+                  <button type="button" class="manage-field__chip" data-chip-option>Style</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Price</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Comfort</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Trends</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Quality</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Brand</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Versatility</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--chip manage-field--span2" data-field="recommendation-style">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4Z"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Recommendation style</span>
+                <span class="manage-field__value" data-chip-value>Not set</span>
+                <div class="manage-field__chips" data-chip-group data-chip-mode="single">
+                  <button type="button" class="manage-field__chip" data-chip-option>Bold &amp; experimental</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Safe &amp; practical</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Trend-driven</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Timeless / classic</button>
+                  <button type="button" class="manage-field__chip" data-chip-option>Mix of trendy and classic</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--tags manage-field--span2" data-field="explicit-likes">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6.5A2 2 0 0 0 17.8 12H14V6.5a2.5 2.5 0 0 0-5 0L7 11"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Things you always want to see</span>
+                <span class="manage-field__value" data-tag-value>None added</span>
+                <div class="manage-field__tags" data-tag-group>
+                  <div class="manage-field__tag-list" data-tag-list></div>
+                  <input type="text" class="manage-field__tag-input" data-tag-input placeholder="e.g. earthy tones, press Enter" />
+                </div>
+              </div>
+            </div>
+
+            <div class="manage-field manage-field--tags manage-field--span2" data-field="explicit-dislikes">
+              <span class="manage-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2v11M22 11V4a2 2 0 0 0-2-2H7.5a2 2 0 0 0-2 1.6L4.2 10.1A2 2 0 0 0 6.2 12.5H10V18a2.5 2.5 0 0 0 5 0l2-6.5"/></svg>
+              </span>
+              <div class="manage-field__body">
+                <span class="manage-field__label">Things to always avoid</span>
+                <span class="manage-field__value" data-tag-value>None added</span>
+                <div class="manage-field__tags" data-tag-group>
+                  <div class="manage-field__tag-list" data-tag-list></div>
+                  <input type="text" class="manage-field__tag-input" data-tag-input placeholder="e.g. neon colors, press Enter" />
+                </div>
               </div>
             </div>
           </div>
@@ -263,38 +739,442 @@
       </section>
 
       <!-- ---------- SECURITY TAB ---------- -->
-      <section class="manage-section" id="tab-security">
-        <div class="manage-placeholder">
-          <span class="manage-placeholder__icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5.5c0 4.6-3 8.2-7 9.5-4-1.3-7-4.9-7-9.5V6z"/></svg>
-          </span>
-          <h3>Password &amp; sign-in</h3>
-          <p>Manage your password, two-factor authentication, and active sessions here.</p>
-        </div>
-      </section>
+      <!--
+        Everything below is rendered from live Clerk user data by
+        js/manageaccount/index.js -> initSecurityTab(). The markup here
+        only provides empty list containers + inline forms; actual rows
+        (emails, connected providers, sessions) are templated in JS
+        because they're dynamic, variable-length collections.
+      -->
+      <section class="manage-section" id="tab-security" role="tabpanel" aria-labelledby="manageTabSecurity" tabindex="0">
 
-      <!-- ---------- ACCOUNT TAB ---------- -->
-      <section class="manage-section" id="tab-account">
-        <div class="manage-placeholder">
-          <span class="manage-placeholder__icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>
-          </span>
-          <h3>Plan &amp; billing</h3>
-          <p>See your current plan, update billing details, or delete your account.</p>
-        </div>
-      </section>
+        <!-- Email addresses -->
+        <div class="manage-card" data-card="emails">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">Email addresses</h2>
+          </div>
 
-      <!-- ---------- CONNECTED ACCOUNTS TAB ---------- -->
-      <section class="manage-section" id="tab-connected">
-        <div class="manage-placeholder">
-          <span class="manage-placeholder__icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15 15 9"/><path d="M11 6l1-1a3.5 3.5 0 0 1 5 5l-1 1"/><path d="M13 18l-1 1a3.5 3.5 0 0 1-5-5l1-1"/></svg>
-          </span>
-          <h3>Connected accounts</h3>
-          <p>Link Google, Instagram, or Pinterest to personalize your style recommendations further.</p>
+          <div class="manage-list" id="securityEmailList" data-loading="true">
+            <div class="manage-list__empty">Loading…</div>
+          </div>
+
+          <div class="manage-inline-form" data-email-verify-form hidden>
+            <div class="manage-inline-form__row">
+              <input type="text" inputmode="numeric" maxlength="6" class="manage-inline-form__input manage-inline-form__input--code" placeholder="6-digit code" data-email-verify-input />
+              <button type="button" class="manage-edit-btn manage-edit-btn--save" data-email-verify-submit>Verify</button>
+              <button type="button" class="manage-edit-btn manage-edit-btn--cancel" data-email-verify-cancel>Cancel</button>
+            </div>
+            <p class="manage-inline-form__hint" data-email-verify-hint>Enter the code we just emailed you to confirm this address.</p>
+          </div>
         </div>
+
+        <!-- Password -->
+        <div class="manage-card" data-card="password">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">Password</h2>
+            <button type="button" class="manage-mini-btn" data-password-toggle>Set password</button>
+          </div>
+
+          <div class="manage-password-status" id="securityPasswordStatus">Loading…</div>
+        </div>
+
+        <!-- Connected accounts -->
+        <div class="manage-card" data-card="connected">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">Connected accounts</h2>
+          </div>
+
+          <!--
+            Same bar as the "Continue with Google" row on the sign-in
+            page (loginpage.html #googleBtnSignin): icon + centered
+            label in a glass field, not a small corner button.
+          -->
+          <button type="button" class="oauth-field" data-connect-google>
+            <span class="oauth-field__icon">
+              <svg viewBox="0 0 48 48">
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.6 0-14.1 4.3-17.4 10.7z"/>
+                <path fill="#4CAF50" d="M24 44c5.5 0 10.5-1.9 14.3-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.8 39.6 16.4 44 24 44z"/>
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.5l6.6 5.6C41.5 36 44 30.6 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+              </svg>
+            </span>
+            <span class="oauth-field__label">Connect Google</span>
+          </button>
+
+          <div class="manage-list" id="securityConnectedList" data-loading="true">
+            <div class="manage-list__empty">Loading…</div>
+          </div>
+        </div>
+
+        <!-- Active devices -->
+        <div class="manage-card" data-card="sessions">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">Active devices</h2>
+          </div>
+
+          <div class="manage-list" id="securitySessionsList" data-loading="true">
+            <div class="manage-list__empty">Loading…</div>
+          </div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="manage-card manage-card--danger" data-card="danger">
+          <div class="manage-card__header">
+            <h2 class="manage-card__title">Delete account</h2>
+          </div>
+          <p class="manage-danger-copy">
+            Permanently deletes your Shop AI account, including your profile, preferences, and sign-in
+            details. This can't be undone.
+          </p>
+          <button type="button" class="manage-danger-btn" data-delete-account-toggle>Delete account</button>
+        </div>
+
       </section>
 
     </div>
+      <!-- PHOTO CROP DIALOG -->
+      <div
+        class="manage-photo-modal"
+        data-photo-modal
+        aria-hidden="true"
+      >
+        <div
+          class="manage-photo-modal__backdrop"
+          data-photo-cancel
+        ></div>
+
+        <div
+          class="manage-photo-modal__card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="photoCropTitle"
+        >
+          <div class="manage-photo-modal__header">
+            <div>
+              <p class="manage-photo-modal__eyebrow">Profile photo</p>
+              <h3 id="photoCropTitle">Adjust your photo</h3>
+            </div>
+
+            <button
+              type="button"
+              class="manage-photo-modal__close"
+              data-photo-cancel
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+
+          <div class="manage-photo-crop">
+            <div
+              class="manage-photo-crop__stage"
+              data-photo-stage
+            >
+              <img
+                class="manage-photo-crop__image"
+                data-photo-crop-image
+                alt="Photo preview"
+              />
+
+              <div
+                class="manage-photo-crop__ring"
+                aria-hidden="true"
+              ></div>
+            </div>
+          </div>
+
+          <div class="manage-photo-controls">
+            <span>Zoom</span>
+            <input
+              data-photo-zoom
+              type="range"
+              min="1"
+              max="3"
+              step="0.01"
+              value="1"
+            />
+          </div>
+
+          <p class="manage-photo-hint">
+            Drag the photo to position your face inside the circle.
+          </p>
+
+          <div class="manage-photo-modal__actions">
+            <button
+              type="button"
+              class="manage-edit-btn manage-edit-btn--cancel"
+              data-photo-cancel
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              class="manage-edit-btn manage-edit-btn--save"
+              data-photo-apply
+            >
+              Use photo
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- REVERIFICATION MODAL -->
+      <!--
+        Clerk requires a fresh "reverification" (re-entering your
+        password) before sensitive actions -- changing your password,
+        connecting/disconnecting an external account, revoking a
+        device, deleting the account. This shares the exact modal shell
+        as the photo-crop dialog above so it looks/opens the same way;
+        js/manageaccount/index.js drives it generically for whichever
+        action asked for it (see withReverification()).
+      -->
+      <div
+        class="manage-photo-modal manage-reverify-modal"
+        data-reverify-modal
+        aria-hidden="true"
+      >
+        <div
+          class="manage-photo-modal__backdrop"
+          data-reverify-cancel
+        ></div>
+
+        <div
+          class="manage-photo-modal__card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reverifyTitle"
+        >
+          <div class="manage-photo-modal__header">
+            <div>
+              <p class="manage-photo-modal__eyebrow">Confirm it's you</p>
+              <h3 id="reverifyTitle">Enter your password to continue</h3>
+            </div>
+
+            <button
+              type="button"
+              class="manage-photo-modal__close"
+              data-reverify-cancel
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+
+          <form data-reverify-form autocomplete="on" onsubmit="return false;">
+            <div class="pw-field">
+              <span class="pw-field__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+              </span>
+              <input type="password" class="pw-field__input" placeholder="Password" data-reverify-password autocomplete="current-password" />
+              <button type="button" class="pw-field__eye" data-reverify-eye aria-label="Show password">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+
+            <p class="manage-inline-form__hint" data-reverify-hint></p>
+          </form>
+
+          <div class="manage-photo-modal__actions">
+            <button
+              type="button"
+              class="manage-edit-btn manage-edit-btn--cancel"
+              data-reverify-cancel
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              class="manage-edit-btn manage-edit-btn--save"
+              data-reverify-submit
+            >
+              Verify
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASSWORD MODAL -->
+      <!--
+        Set/Change password now opens as a popup instead of expanding
+        inline underneath the Password card (which used to push
+        Connected accounts / Active devices / Delete account down the
+        page). Same modal shell as the reverify dialog above, so the
+        backdrop dims the page but never blurs it -- the fields inside
+        keep the exact liquid-glass treatment from loginpage.css
+        (.pw-field mirrors #signinView .field.input-field 1:1).
+        Driven by wirePassword() in js/manageaccount/index.js, which
+        still swaps data-password-step="details" -> "confirm" exactly
+        like the sign-up flow in loginpage.js.
+      -->
+      <div
+        class="manage-photo-modal manage-password-modal"
+        data-password-modal
+        aria-hidden="true"
+      >
+        <div
+          class="manage-photo-modal__backdrop"
+          data-password-cancel
+        ></div>
+
+        <div
+          class="manage-photo-modal__card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="passwordModalTitle"
+        >
+          <div class="manage-photo-modal__header">
+            <div>
+              <p class="manage-photo-modal__eyebrow">Security</p>
+              <h3 id="passwordModalTitle" data-password-modal-title>Set password</h3>
+            </div>
+
+            <button
+              type="button"
+              class="manage-photo-modal__close"
+              data-password-cancel
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+
+          <form class="manage-password-panel" data-password-form autocomplete="on" onsubmit="return false;">
+
+            <div class="manage-password-step" data-password-step="details">
+
+              <div class="pw-field" data-password-current-wrap hidden>
+                <span class="pw-field__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                </span>
+                <input type="password" class="pw-field__input" placeholder="Current password" data-password-current autocomplete="current-password" />
+                <button type="button" class="pw-field__eye" data-password-eye="current" aria-label="Show password">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+
+              <div class="pw-field">
+                <span class="pw-field__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                </span>
+                <input type="password" class="pw-field__input" placeholder="New password" data-password-new autocomplete="new-password" />
+                <button type="button" class="pw-field__eye" data-password-eye="new" aria-label="Show password">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+
+              <ul class="pw-requirements" data-password-requirements>
+                <li data-req="length">At least 8 characters</li>
+                <li data-req="letter">At least one letter</li>
+                <li data-req="number">At least one number</li>
+              </ul>
+
+              <div class="pw-actions">
+                <button type="button" class="pw-btn-primary" data-password-continue disabled>Continue</button>
+                <button type="button" class="pw-btn-text" data-password-cancel>Cancel</button>
+              </div>
+            </div>
+
+            <div class="manage-password-step" data-password-step="confirm" hidden>
+
+              <div class="pw-field">
+                <span class="pw-field__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                </span>
+                <input type="password" class="pw-field__input" placeholder="Confirm new password" data-password-confirm autocomplete="new-password" />
+                <button type="button" class="pw-field__eye" data-password-eye="confirm" aria-label="Show password">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+
+              <p class="pw-match-hint" data-req="match">Passwords must match.</p>
+
+              <div class="pw-actions">
+                <button type="button" class="pw-btn-primary" data-password-submit disabled>Save password</button>
+                <button type="button" class="pw-btn-text" data-password-back>Back</button>
+              </div>
+            </div>
+
+            <p class="manage-inline-form__hint" data-password-hint></p>
+          </form>
+        </div>
+      </div>
+
+      <!-- DELETE ACCOUNT MODAL -->
+      <!--
+        Same fix as the password flow above: "Delete account" used to
+        expand an inline form inside the danger card, shoving Active
+        devices / the rest of the page around. Now it opens as its own
+        popup (backdrop dims, never blurs, same as the reverify modal)
+        so the confirmation step reads clearly and nothing else on the
+        page moves.
+      -->
+      <div
+        class="manage-photo-modal manage-delete-modal"
+        data-delete-account-modal
+        aria-hidden="true"
+      >
+        <div
+          class="manage-photo-modal__backdrop"
+          data-delete-account-cancel
+        ></div>
+
+        <div
+          class="manage-photo-modal__card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="deleteAccountModalTitle"
+        >
+          <div class="manage-photo-modal__header">
+            <div>
+              <p class="manage-photo-modal__eyebrow manage-photo-modal__eyebrow--danger">Danger zone</p>
+              <h3 id="deleteAccountModalTitle">Delete your account</h3>
+            </div>
+
+            <button
+              type="button"
+              class="manage-photo-modal__close"
+              data-delete-account-cancel
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+
+          <p class="manage-danger-copy">
+            Permanently deletes your Shop AI account, including your profile, preferences, and sign-in
+            details. This can't be undone.
+          </p>
+
+          <div class="manage-inline-form manage-inline-form--danger">
+            <p class="manage-inline-form__hint">
+              Type <strong>delete</strong> to confirm. This immediately removes your account.
+            </p>
+            <div class="manage-inline-form__row">
+              <input type="text" class="manage-inline-form__input" placeholder="delete" data-delete-account-input autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="manage-photo-modal__actions">
+            <button
+              type="button"
+              class="manage-edit-btn manage-edit-btn--cancel"
+              data-delete-account-cancel
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              class="manage-danger-btn"
+              data-delete-account-submit
+            >
+              Delete permanently
+            </button>
+          </div>
+        </div>
+      </div>
   </div>
 </div>
+</body>
+</html>

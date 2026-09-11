@@ -1,0 +1,211 @@
+/* ==========================================================================
+   HISTORY PAGE — styles specific to history.html only.
+   Relies on variable.css + style.css for shared tokens (--color-*,
+   --radius-*, --shadow-*, --glass-blur, --font-family) and the
+   sidebar/topbar/glass-panel design system already established on the
+   Home page. Nothing here should duplicate those — only history-specific
+   layout. No gradients, no purple/blue tint, no glow — same language as
+   wardrobe/login.
+   ========================================================================== */
+
+.history-page {
+  width: 100%;
+  max-width: var(--content-width, 760px);
+  margin: 0 auto;
+  padding: 8px 24px 56px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+/* --- Header --- */
+.history-header {
+  margin-bottom: 28px;
+}
+
+.history-title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.history-subtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+/* --- List --- */
+.history-list {
+  display: grid;
+  gap: 8px;
+}
+
+/* --- Item card --- */
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 13px 14px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--lg-tint);
+  -webkit-backdrop-filter: var(--lg-blur);
+  backdrop-filter: var(--lg-blur);
+  border: 1px solid var(--hairline);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+.history-item:hover {
+  background: var(--lg-tint-hi);
+  border-color: var(--hairline-strong);
+}
+
+.history-item--selected {
+  transform: scale(0.99);
+}
+
+/* --- Delete button --- */
+.history-item__delete {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.history-item:hover .history-item__delete {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.history-item__delete:hover {
+  background: var(--color-danger-light, rgba(239, 68, 68, 0.12));
+  color: var(--color-danger, #ef4444);
+}
+
+
+/* --- Icon --- */
+.history-item__icon {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--color-purple-light);
+  color: var(--color-purple-dark);
+}
+
+/* --- Copy --- */
+.history-item__copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.history-item__title {
+  display: block;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-item__preview {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-item__date {
+  flex: 0 0 auto;
+  color: var(--color-text-faint);
+  font-size: 11.5px;
+}
+
+/* --- Empty state --- */
+.history-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 70px 24px;
+  color: var(--color-text-secondary);
+  background: var(--lg-tint);
+  -webkit-backdrop-filter: var(--lg-blur);
+  backdrop-filter: var(--lg-blur);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl);
+}
+.history-empty[hidden] { display: none; }
+.history-empty svg { color: var(--color-text-faint); margin-bottom: 6px; }
+.history-empty__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.history-empty__subtitle {
+  font-size: 12.5px;
+  max-width: 320px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .history-page { padding: 6px 16px 36px; }
+  .history-item { padding: 11px 12px; }
+  .history-item__date { display: none; }
+}
+
+@media (max-width: 640px) {
+  .history-page { padding: 6px 16px 36px; }
+  .history-item { padding: 11px 12px; }
+  .history-item__date { display: none; }
+  .history-item__delete { opacity: 1; pointer-events: auto; }
+}
+/* --- Loading spinner state --- */
+.history-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 70px 24px;
+}
+
+.history-loading__spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2.5px solid var(--color-nav-active-bg);
+  border-top-color: var(--color-text-primary);
+  animation: history-spin 0.7s linear infinite;
+}
+
+@keyframes history-spin {
+  to { transform: rotate(360deg); }
+}
+
+.history-loading[hidden] { display: none; }

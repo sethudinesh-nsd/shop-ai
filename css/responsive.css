@@ -1,89 +1,58 @@
 /* ==========================================================================
-   RESPONSIVE BREAKPOINTS
-   Rewritten against the new minimal scale in style.css. Nothing in here
-   should ever push .hero__title, .sidebar, or .features back toward the
-   old oversized values (44px heading, 260px sidebar, etc.) — every number
-   below is a small adjustment around the new tokens, not a jump back to
-   the old design.
+   RESPONSIVE
+   ==========================================================================
+   The layout is a flush sidebar plus a canvas, so these breakpoints only
+   ever adjust three things: sidebar width, hero type size, and the
+   conversation column. Nothing here reintroduces floating panels,
+   gradients, or shadows.
    ========================================================================== */
 
-/* --- Large desktops: 1920 / 1728 / 1600 --- */
+/* --- Large displays --- */
 @media (min-width: 1600px) {
-  .main {
-    padding: 16px 20px 20px;
-  }
-
-  .hero__title {
-    font-size: 28px;
-  }
-
-  .features {
-    max-width: 780px;
-  }
+  .hero__title { font-size: 44px; }
+  .features { max-width: 760px; }
 }
 
-/* --- Standard laptops: 1536 / 1440 / MacBook Pro 16" --- */
-@media (max-width: 1536px) {
-  .sidebar {
-    width: 195px;
-  }
-}
-
-/* --- MacBook Pro 14" / MacBook Air / mid laptops --- */
+/* --- Standard laptops --- */
 @media (max-width: 1440px) {
-  .main {
-    padding: 14px 14px 18px;
-  }
-
-  .hero__title {
-    font-size: 26px;
-  }
+  .hero__title { font-size: 38px; }
 }
 
-/* --- iPad Pro / small laptops --- */
+/* --- Small laptops / large tablets --- */
 @media (max-width: 1200px) {
-  .sidebar {
-    width: 190px;
-    padding: 14px 8px;
-  }
-
-  .features {
-    gap: 16px;
-  }
+  :root { --sidebar-width: 216px; }
+  .hero__title { font-size: 34px; }
 }
 
-/* --- iPad Air / narrow tablets --- */
+/* --- Tablets: the sidebar becomes a top bar --- */
 @media (max-width: 1024px) {
-  .app {
-    flex-direction: column;
-  }
+  .app { flex-direction: column; }
 
   .sidebar {
     position: relative;
     top: 0;
     width: auto;
     height: auto;
-    margin: 12px;
     flex-direction: row;
     align-items: center;
-    padding: 10px 14px;
-    gap: 16px;
+    padding: 8px 14px;
+    gap: 14px;
+    border-right: none;
+    border-bottom: 1px solid var(--hairline);
   }
 
-  .sidebar__brand {
-    padding: 0;
-  }
+  .sidebar__brand { padding: 0; }
 
   .sidebar__nav {
     flex-direction: row;
     flex: 1;
     overflow-x: auto;
     gap: 2px;
+    scrollbar-width: none;
   }
+  .sidebar__nav::-webkit-scrollbar { display: none; }
 
-  .nav-label {
-    display: none;
-  }
+  .nav-label { display: none; }
 
   .nav-item {
     width: 34px;
@@ -92,195 +61,75 @@
     justify-content: center;
   }
 
-  .sidebar__user {
-    flex-shrink: 0;
-  }
+  .sidebar__user { flex-shrink: 0; margin-top: 0; padding: 4px; }
+  .user-meta { display: none; }
+  .user-chevron { display: none; }
 
-  .user-meta {
-    display: none;
-  }
-
-  .user-chevron {
-    display: none;
-  }
-
-  .main {
-    padding: 8px 20px 24px;
-  }
-
-  .hero {
-    padding: 28px 16px;
-  }
-
-  .hero__title {
-    font-size: 24px;
-  }
-
-  .features {
-    justify-content: center;
-  }
-
-  /* Profile menu anchors to the button's right edge and opens upward,
-     since .sidebar__user now sits near the right end of a horizontal
-     bar instead of the bottom of a tall vertical sidebar. */
+  /* The account menu now hangs from a top bar, not a tall rail. */
   .profile-menu {
     left: auto;
     right: 0;
-    bottom: calc(100% + 8px);
-    transform-origin: bottom right;
+    bottom: auto;
+    top: calc(100% + 8px);
+    transform-origin: top right;
   }
 
-  /* Conversation column relaxes to full width on tablet */
-  .hero__chat {
-    max-width: 100%;
-  }
-  .message {
-    max-width: 100%;
-  }
-  .message__content {
-    max-width: 100%;
-  }
-  .message--user .message__content {
-    max-width: 82%;
-  }
+  .topbar { height: 24px; }
+
+  .hero { padding: 0 20px 56px; }
+  .hero__title { font-size: 32px; }
+  .hero__voice { font-size: 16px; margin-bottom: 28px; }
+
+  .hero__chat,
+  .message,
+  .message__content { max-width: 100%; }
+  .message--user .message__content { max-width: 84%; }
 }
 
-/* --- Tablets / large phones --- */
+/* --- Large phones --- */
 @media (max-width: 768px) {
-  .main {
-    padding: 8px 14px 20px;
-  }
+  .hero { padding: 0 16px 40px; }
+  .hero__title { font-size: 28px; }
+  .hero__voice { font-size: 15px; margin-bottom: 24px; }
 
-  .hero__title {
-    font-size: 22px;
-    margin-bottom: 20px;
-  }
+  .searchbar { min-height: 48px; padding: 8px 8px 8px 12px; }
+  .searchbar__input { font-size: 16px; } /* 16px keeps iOS from zooming on focus */
 
-  .hero__greeting {
-    font-size: 12px;
-  }
-
-  .searchbar {
-    padding: 5px 6px 5px 12px;
-  }
-
-  .searchbar__input {
-    font-size: 13px;
-  }
-
-  .features {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 14px 20px;
-  }
-
-  .feature__text {
-    display: none;
-  }
-
-  /* Conversation column */
-  .hero__chat {
-    padding: 0 10px;
-  }
-  .message {
-    margin-bottom: 12px;
-  }
-  .message__content {
-    font-size: 14px;
-  }
-  .message--user .message__content {
-    max-width: 88%;
-  }
+  .hero--chat-mode { padding: 0 16px 16px !important; }
+  .message { margin-bottom: 20px; }
+  .message__content { font-size: 15px; }
+  .message--user .message__content { max-width: 90%; }
 
   .message__content pre code,
-  .code-block pre code {
-    font-size: 12.5px;
-    padding: 12px 14px;
-  }
+  .code-block pre code { font-size: 12px; padding: 12px 14px; }
   .message__content th,
-  .message__content td {
-    padding: 7px 10px;
-    font-size: 13px;
-  }
+  .message__content td { padding: 8px 11px; font-size: 13px; }
 }
 
-/* --- Mobile phones --- */
+/* --- Phones --- */
 @media (max-width: 480px) {
-  .sidebar {
-    margin: 8px;
-    padding: 8px 10px;
-    gap: 8px;
-  }
+  .sidebar { padding: 7px 10px; gap: 8px; }
+  .brand-name { font-size: 13.5px; }
+  .nav-item { width: 32px; height: 32px; }
 
-  .brand-name {
-    font-size: 13px;
-  }
+  .hero { padding: 0 14px 32px; }
+  .hero__title { font-size: 25px; letter-spacing: -0.028em; }
+  .hero__voice { margin-bottom: 20px; }
 
-  .nav-item {
-    width: 30px;
-    height: 30px;
-  }
+  .hero__suggestions { gap: 6px; }
+  .suggestion-chip { height: 30px; padding: 0 12px; font-size: 12.5px; }
 
-  .main {
-    padding: 6px 10px 16px;
-  }
+  .searchbar { gap: 4px; }
+  .searchbar__icon-btn:last-of-type { display: none; }
 
-  .hero {
-    padding: 20px 6px;
-  }
+  .message { margin-bottom: 18px; }
+  .message--user .message__content { max-width: 92%; }
+  .message__actions { flex-wrap: wrap; }
 
-  .hero__title {
-    font-size: 19px;
-    margin-bottom: 18px;
-  }
-
-  .searchbar {
-    flex-wrap: nowrap;
-    gap: 4px;
-  }
-
-  .searchbar__icon-btn:last-of-type {
-    display: none;
-  }
-
-  .searchbar__input {
-    font-size: 12.5px;
-  }
-
-  .features {
-    gap: 12px 16px;
-  }
-
-  .feature__icon {
-    width: 20px;
-    height: 20px;
-  }
-
-  /* Conversation column */
-  .message {
-    margin-bottom: 10px;
-  }
-  .message__content {
-    font-size: 13px;
-  }
-  .message--user .message__content {
-    max-width: 92%;
-  }
-  .message__actions {
-    gap: 2px;
-    flex-wrap: wrap;
-  }
-
-  .message__content h1 { font-size: 1.25em; margin: 20px 0 9px; }
-  .message__content h2 { font-size: 1.12em; margin: 18px 0 8px; }
-  .message__content h3 { font-size: 1.02em; margin: 16px 0 6px; }
+  .message__content h1 { font-size: 1.22em; margin: 20px 0 9px; }
+  .message__content h2 { font-size: 1.1em; margin: 18px 0 8px; }
+  .message__content h3 { font-size: 1em; margin: 16px 0 6px; }
   .message__content pre code,
-  .code-block pre code {
-    font-size: 11.5px;
-    padding: 10px 12px;
-  }
-  .code-block__header {
-    padding: 5px 10px;
-    font-size: 10.5px;
-  }
+  .code-block pre code { font-size: 11.5px; padding: 10px 12px; }
+  .code-block__header { padding: 6px 10px; font-size: 10.5px; }
 }

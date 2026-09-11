@@ -20,7 +20,11 @@
     (async () => {
       try {
         const clerk = await window.ShopAIAuth.ready;
+        const appUrl = new URL('loginpage.html', window.location.href).toString();
         await clerk.handleRedirectCallback({
+          signInUrl: appUrl,
+          signUpUrl: appUrl,
+          continueSignUpUrl: appUrl,
           signInForceRedirectUrl: 'index.html',
           signUpForceRedirectUrl: 'index.html',
         });

@@ -1,458 +1,3125 @@
-/* ==========================================================================
-   MANAGE ACCOUNT — OVERLAY
-   Loaded on every page (alongside style.css). The markup itself is fetched
-   once by js/app.js and injected into <body>, so these rules target a
-   panel that can appear on top of Home, Wardrobe, History, etc.
-   Uses the tokens from ../style.css — no new colors/radii defined here.
-   ========================================================================== */
+/* =========================================================
+   Manage Account — Apple Liquid Glass
+   Matches the design language established in loginpage.css:
+   neutral flat backgrounds, subtle backdrop blur, thin bright
+   edges, natural shadows. No gradients, no purple/blue tint,
+   no glow. Everything below is scoped under .manage-overlay
+   so it can't leak into or clash with any other stylesheet.
+   ========================================================= */
 
-.manage-overlay {
+.manage-overlay{
+  /* ---- local tokens (mirrors loginpage.css) ---- */
+  /* Relit for the dark room. Ink and surfaces invert; the status
+     colours move to Apple's dark-mode system variants, which are
+     lighter and less saturated so they stay legible on black. */
+  --ink: #ffffff;
+  --muted: rgba(235,235,245,0.60);
+  --muted-2: rgba(235,235,245,0.42);
+  --line: rgba(255,255,255,0.09);
+
+  --panel-bg: rgba(28,28,30,0.72);
+  --nav-bg: rgba(255,255,255,0.035);
+  --nav-line: rgba(255,255,255,0.08);
+
+  --surface: rgba(255,255,255,0.055);
+  --surface-hover: rgba(255,255,255,0.09);
+  --surface-border: rgba(255,255,255,0.11);
+
+  --field-bg: rgba(255,255,255,0.05);
+  --field-border: rgba(255,255,255,0.10);
+  --field-bg-editing: rgba(255,255,255,0.09);
+
+  --danger: #ff453a;
+  --danger-ink: #ff6961;
+  --danger-bg: rgba(255,69,58,0.13);
+  --danger-line: rgba(255,69,58,0.32);
+
+  --success: #30d158;
+  --success-bg: rgba(48,209,88,0.14);
+  --warn: #ffd60a;
+  --warn-bg: rgba(255,214,10,0.14);
+  --current: #0a84ff;
+  --current-bg: rgba(10,132,255,0.16);
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.manage-overlay *{ box-sizing: border-box; }
+
+/* ---------------------------------------------------------
+   Overlay + backdrop
+   --------------------------------------------------------- */
+
+.manage-overlay{
   position: fixed;
   inset: 0;
-  z-index: 200;
-  display: flex;
-  align-items: stretch;
-  justify-content: stretch;
-
-  /* Left padding clears the sidebar (width + its 14px margins on both
-     sides). Kept as a variable so the breakpoints below only need to
-     change one number, mirroring the .sidebar width changes in
-     responsive.css. */
-  --panel-inset-left: calc(210px + 28px);
-  padding: 14px 14px 14px var(--panel-inset-left);
-
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.28s cubic-bezier(0.32, 0.72, 0, 1), visibility 0.28s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.manage-overlay--open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.manage-overlay__backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: rgba(28, 28, 28, 0.14);
-}
-
-.manage-panel {
-  flex: 1;
-  display: flex;
-  min-height: 0;
-  min-width: 0;
-  position: relative;
-  background: var(--color-sidebar-bg);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  box-shadow:
-    0 0 0 1px rgba(0,0,0,0.035),
-    inset 0 1px 0 rgba(255,255,255,0.65),
-    0 20px 50px rgba(0,0,0,0.16);
-  overflow: hidden;
-  transform: translateY(6px) scale(0.99);
-  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.manage-overlay--open .manage-panel {
-  transform: translateY(0) scale(1);
-}
-
-.manage-panel__close {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-white);
-  color: var(--color-text-secondary);
-  box-shadow: var(--shadow-card);
-  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  padding: 32px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.manage-overlay.manage-overlay--open{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.manage-overlay__backdrop{
+  position: absolute;
+  inset: 0;
+  /* A sheet this size needs the app to recede behind it, or the panel
+     reads as another layer of the page rather than something modal.
+     Dim plus a light blur — the standard Apple sheet treatment. */
+  background: rgba(0,0,0,0.55);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  backdrop-filter: blur(20px) saturate(120%);
+}
+
+/* ---------------------------------------------------------
+   Panel shell
+   --------------------------------------------------------- */
+
+.manage-panel{
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  height: min(680px, 88vh);
+  display: grid;
+  grid-template-columns: 252px 1fr;
+  background: var(--panel-bg);
+  -webkit-backdrop-filter: blur(48px) saturate(190%);
+  backdrop-filter: blur(48px) saturate(190%);
+  border: 1px solid rgba(255,255,255,0.085);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  -webkit-backdrop-filter: blur(38px) saturate(160%);
+  backdrop-filter: blur(38px) saturate(160%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.14) inset,
+    0 30px 70px rgba(0,0,0,0.728),
+    0 10px 24px rgba(0,0,0,0.364);
+  transform: scale(0.97) translateY(6px);
+  opacity: 0;
+  transition: transform 0.24s cubic-bezier(.2,.8,.3,1), opacity 0.2s ease;
+}
+
+.manage-overlay--open .manage-panel{
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.manage-panel__close{
+  position: absolute;
+  top: 16px;
+  right: 16px;
   z-index: 5;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.manage-panel__close:hover {
-  color: var(--color-text-primary);
-  transform: scale(1.05);
+.manage-panel__close:hover{
+  background: var(--surface-hover);
+  color: var(--ink);
 }
 
-/* --- Left rail: heading + section tabs --- */
-.manage-nav {
-  width: 250px;
-  flex-shrink: 0;
-  padding: 30px 20px 20px;
+/* ---------------------------------------------------------
+   Left rail — nav
+   --------------------------------------------------------- */
+
+.manage-nav{
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--color-border-soft);
+  padding: 28px 18px 18px;
+  background: var(--nav-bg);
+  border-right: 1px solid var(--nav-line);
   overflow-y: auto;
 }
 
-.manage-nav__title {
-  font-size: 21px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 6px;
-  color: var(--color-text-primary);
+.manage-nav__title{
+  margin: 0 0 4px;
+  padding-right: 30px;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
-.manage-nav__subtitle {
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--color-text-secondary);
+.manage-nav__subtitle{
   margin: 0 0 22px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
 }
 
-.manage-tabs {
+.manage-tabs{
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.manage-tab{
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted-2);
+  font-size: 13px;
+  font-weight: 550;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.manage-tab:hover{
+  background: rgba(255,255,255,0.07);
+  color: var(--ink);
+}
+
+.manage-tab--active{
+  background: rgba(255,255,255,0.1);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.117),
+    0 1px 2px rgba(0,0,0,0.156);
+}
+
+.manage-tab--active:hover{
+  background: rgba(255,255,255,0.1);
+}
+
+.manage-tab__icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.manage-tab__icon svg{ width: 100%; height: 100%; }
+
+.manage-nav__footer{
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.manage-nav__note{
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.085);
+}
+
+.manage-nav__note p{
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted-2);
+}
+
+.manage-nav__note a{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.manage-nav__note a:hover{ text-decoration: underline; }
+
+/* ---------------------------------------------------------
+   Right column — content
+   --------------------------------------------------------- */
+
+.manage-content{
+  overflow-y: auto;
+  padding: 28px 30px 34px;
+}
+
+.manage-section{ display: none; }
+.manage-section.manage-section--active{
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---------------------------------------------------------
+   Cards
+   --------------------------------------------------------- */
+
+.manage-card{
+  padding: 18px 20px 20px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    0 1px 2px rgba(0,0,0,0.078);
+}
+
+/* Identity is the hero card of the Profile tab — a touch more
+   lift than the secondary info cards below it. */
+.manage-card[data-card="identity"]{
+  background: rgba(255,255,255,0.085);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    0 10px 26px rgba(0,0,0,0.156),
+    0 1px 2px rgba(0,0,0,0.104);
+}
+
+.manage-card__header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.manage-card__title{
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* .manage-card__actions / .manage-edit-btn--edit are no longer used
+   anywhere in Profile (the Identity card's Edit/Cancel/Save trio was
+   removed from the HTML in favor of always-live inline rows — see
+   initInlineRowEditing in index.js). Left defined, not deleted,
+   because .manage-edit-btn--cancel/--save are still real buttons used
+   by the password/email-verify/delete-account/photo-crop flows. */
+.manage-card__actions{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* edit / cancel / save controls */
+
+.manage-edit-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.085);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.manage-edit-btn svg{ width: 12px; height: 12px; }
+
+.manage-edit-btn:hover{ background: rgba(255,255,255,0.1); }
+
+.manage-edit-btn--save{
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
+}
+
+.manage-edit-btn--save:hover{ background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.1); }
+
+.manage-edit-btn--cancel{
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.manage-edit-btn--cancel:hover{
+  background: rgba(255,255,255,0.05);
+  color: var(--ink);
+}
+
+/* Only the card-HEADER edit/cancel/save trio toggles with
+   .manage-card--editing. This must stay scoped to
+   .manage-card__actions specifically — .manage-edit-btn--save
+   and --cancel are reused elsewhere (password form, email
+   verify form, delete-account confirm, photo-crop modal) and
+   those must stay visible regardless of card editing state. */
+.manage-card__actions .manage-edit-btn--cancel,
+.manage-card__actions .manage-edit-btn--save{ display: none; }
+
+.manage-card--editing .manage-card__actions .manage-edit-btn--edit{ display: none; }
+.manage-card--editing .manage-card__actions .manage-edit-btn--cancel,
+.manage-card--editing .manage-card__actions .manage-edit-btn--save{ display: inline-flex; }
+
+.manage-mini-btn{
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.085);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.manage-mini-btn:hover{ background: rgba(255,255,255,0.1); }
+
+.manage-mini-btn:disabled{ opacity: 0.55; cursor: wait; }
+
+.manage-mini-btn__icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  margin-right: 5px;
+  vertical-align: -2px;
+}
+
+.manage-mini-btn__icon svg{ width: 100%; height: 100%; }
+
+/* ---------------------------------------------------------
+   Profile block (avatar + name/email)
+   --------------------------------------------------------- */
+
+.manage-profile{
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.manage-avatar{
+  position: relative;
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: visible;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow:
+    0 0 0 4px rgba(255,255,255,0.14),
+    0 4px 14px rgba(0,0,0,0.26);
+  transition: box-shadow 0.15s ease;
+}
+
+.manage-avatar:hover{
+  box-shadow:
+    0 0 0 4px rgba(255,255,255,0.14),
+    0 4px 14px rgba(0,0,0,0.364);
+}
+
+.manage-avatar img{
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.manage-avatar__edit{
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 27px;
+  height: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #000000;
+  border: 2px solid var(--panel-bg);
+  cursor: pointer;
+}
+
+.manage-avatar__edit svg{ width: 12px; height: 12px; }
+
+.manage-avatar__edit:hover{ background: rgba(255,255,255,0.1); }
+
+.manage-profile__info{
+  min-width: 0;
+}
+
+.manage-profile__email{
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* plain fields (no icon box) — name, bio */
+
+.manage-field--plain .manage-field__body{
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.manage-tab {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  height: 38px;
-  padding: 0 10px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+.manage-field--plain .manage-field__label{
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
-.manage-tab:hover {
-  background: rgba(20, 19, 26, 0.035);
-  color: var(--color-text-primary);
-}
-
-.manage-tab--active {
-  background: var(--color-nav-active-bg);
-  color: var(--color-text-primary);
-  box-shadow: var(--shadow-nav-active);
-  font-weight: 600;
-}
-
-.manage-tab__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;
-}
-
-.manage-nav__footer {
-  margin-top: auto;
-  padding-top: 16px;
-}
-
-.manage-nav__note {
-  padding: 14px 14px 15px;
-  border-radius: var(--radius-lg);
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-border-soft);
-  box-shadow: var(--shadow-card);
-}
-
-.manage-nav__note p {
-  margin: 0 0 8px;
-  font-size: 11.5px;
-  line-height: 1.55;
-  color: var(--color-text-secondary);
-}
-
-.manage-nav__note a {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--color-purple-dark);
-}
-
-.manage-nav__note a:hover { text-decoration: underline; }
-
-/* --- Right column: scrollable content --- */
-.manage-content {
-  flex: 1;
-  min-width: 0;
-  overflow-y: auto;
-  padding: 30px 34px 40px;
-}
-
-.manage-section {
-  display: none;
-  flex-direction: column;
-  gap: 18px;
-  max-width: 720px;
-}
-
-.manage-section--active { display: flex; }
-
-.manage-card {
-  padding: 18px 20px 20px;
-  border-radius: var(--radius-xl);
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-border-soft);
-  box-shadow: var(--shadow-card);
-}
-
-.manage-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-
-.manage-card__title {
-  font-size: 14.5px;
+.manage-field--name .manage-field__value{
+  font-size: 19px;
   font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
-.manage-edit-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 12px;
-  border-radius: var(--radius-pill);
-  background: var(--color-white);
-  color: var(--color-text-primary);
-  font-size: 12px;
-  font-weight: 600;
-  box-shadow: var(--shadow-card);
-  transition: background 0.15s ease, transform 0.15s ease;
-}
+.manage-field--bio{ margin-top: 2px; }
 
-.manage-edit-btn:hover { background: var(--color-nav-active-bg); }
-.manage-edit-btn svg { width: 13px; height: 13px; }
-
-.manage-edit-btn--save {
-  background: var(--color-black);
-  color: var(--color-white);
-}
-.manage-edit-btn--save:hover { background: #000; }
-
-.manage-card__actions { display: flex; gap: 8px; }
-.manage-card__actions .manage-edit-btn--cancel { background: transparent; box-shadow: none; }
-.manage-card__actions .manage-edit-btn--cancel:hover { background: var(--color-purple-light); }
-
-/* --- 1. Profile card --- */
-.manage-profile {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.manage-avatar {
-  position: relative;
-  width: 74px;
-  height: 74px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: var(--color-sidebar-bg);
-  box-shadow: var(--shadow-card);
-}
-
-.manage-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-.manage-avatar__edit {
-  position: absolute;
-  right: -2px;
-  bottom: -2px;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-white);
-  color: var(--color-text-primary);
-  box-shadow: var(--shadow-card);
-  cursor: pointer;
-}
-
-.manage-avatar__edit svg { width: 13px; height: 13px; }
-
-.manage-profile__name {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0 0 2px;
-}
-
-.manage-profile__email {
+.manage-field--bio .manage-field__value{
   font-size: 12.5px;
-  color: var(--color-text-secondary);
-  margin: 0 0 9px;
+  line-height: 1.5;
+  color: var(--muted-2);
 }
 
-.manage-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
-  border-radius: var(--radius-pill);
-  background: var(--color-purple-light);
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
+/* ---------------------------------------------------------
+   Boxed fields (icon + label/value), used in the grids
+   --------------------------------------------------------- */
 
-.manage-badge svg { width: 12px; height: 12px; color: var(--color-purple); }
-
-/* --- Info grids (basic info / body & fit) --- */
-.manage-grid {
+.manage-grid{
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
-.manage-field {
+.manage-field{
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
-  padding: 12px 13px;
-  border-radius: var(--radius-lg);
-  background: var(--color-input-bg);
-  border: 1px solid var(--color-border-soft);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+  min-width: 0;
 }
 
-.manage-field__icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.manage-field__icon{
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-white);
-  color: var(--color-text-secondary);
-  box-shadow: var(--shadow-card);
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.055);
+  color: var(--muted-2);
 }
 
-.manage-field__icon svg { width: 13px; height: 13px; }
+.manage-field__icon svg{ width: 14px; height: 14px; }
 
-.manage-field__body { min-width: 0; flex: 1; }
+.manage-field__body{
+  min-width: 0;
+  flex: 1;
+}
 
-.manage-field__label {
+.manage-field__label{
   display: block;
-  font-size: 11px;
-  color: var(--color-text-secondary);
-  margin-bottom: 2px;
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-bottom: 1px;
 }
 
-.manage-field__value {
+.manage-field__value{
   display: block;
   font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  white-space: nowrap;
+  font-weight: 550;
+  color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+/* inputs / selects / textarea: hidden until a card enters
+   editing mode, then they replace the static value text */
+
 .manage-field__input,
-.manage-field__select {
+.manage-field__select,
+.manage-field__textarea{
+  display: none;
   width: 100%;
   border: none;
   outline: none;
   background: transparent;
   font-family: inherit;
   font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 2px;
+  font-weight: 550;
+  color: var(--ink);
+  padding: 0;
 }
 
-/* Placeholder state = read only; edit state swaps value <-> input via [hidden] */
-.manage-card:not(.manage-card--editing) .manage-field__input,
-.manage-card:not(.manage-card--editing) .manage-field__select { display: none; }
-.manage-card.manage-card--editing .manage-field__value { display: none; }
-.manage-card:not(.manage-card--editing) .manage-card__actions { display: none; }
-.manage-card.manage-card--editing .manage-edit-btn--edit { display: none; }
+.manage-field__textarea{
+  resize: vertical;
+  line-height: 1.5;
+  font-weight: 400;
+  min-height: 40px;
+}
 
-/* --- Placeholder tabs (security / account / connected) --- */
-.manage-placeholder {
+/* ---------------------------------------------------------
+   Row editing — one row at a time, the way Settings does it
+   ---------------------------------------------------------
+   Every row used to be a permanently-open <input>, which is why the
+   tab read as a form rather than a list: values sat in boxes, and the
+   Age row rendered blank because its input is type="hidden" and the
+   text value was being hidden along with all the others.
+
+   A row now shows its value as text and swaps to a control only while
+   it is the row being edited. Chip and date rows never swap — they
+   open a picker instead — so they keep their text value throughout.
+   --------------------------------------------------------- */
+
+.manage-field--editing .manage-field__value{ display: none; }
+
+.manage-field--editing .manage-field__input,
+.manage-field--editing .manage-field__select,
+.manage-field--editing .manage-field__textarea{
+  display: block;
+}
+
+/* The bio is the one genuinely multi-line field; it stays open so the
+   row does not jump between one line and six as you enter and leave it. */
+.manage-field--bio .manage-field__textarea{ display: block; }
+.manage-field--bio .manage-field__value{ display: none; }
+
+.manage-field--editing,
+.manage-field--editing.manage-field--plain .manage-field__body{
+  background: var(--field-bg-editing);
+  transition: box-shadow 0.15s ease, background 0.15s ease;
+}
+
+/* No blanket border/ring snapping onto every field the moment editing
+   starts — that read as a wall of boxes appearing all at once. Fields
+   stay quiet until you actually interact with one. */
+.manage-field:focus-within{
+  background: rgba(38,38,41,0.92);
+  box-shadow:
+    0 0 0 2px rgba(17,17,17,0.07),
+    inset 0 1px 0 rgba(255,255,255,0.14);
+}
+
+/* Whole row reads as "click anywhere to edit" — cursor says so even
+   over the label/padding, not just the tight auto-width input box.
+   Chip/DOB rows override this with cursor:pointer below since those
+   open a picker instead of taking a caret. */
+.manage-grid .manage-field__body{
+  cursor: text;
+}
+
+.manage-field--name input,
+.manage-field--bio textarea{
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--field-bg-editing);
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.manage-field--name input:focus,
+.manage-field--bio textarea:focus{
+  background: rgba(38,38,41,0.92);
+  border-color: rgba(17,17,17,0.14);
+}
+
+.manage-field__select{ cursor: pointer; }
+
+/* ---------------------------------------------------------
+   Chip-select fields (single or multi) and tag-input fields
+   --------------------------------------------------------- */
+
+.manage-field--tags{
+  align-items: flex-start;
+}
+
+.manage-field--span2{
+  grid-column: span 2;
+}
+@media (max-width: 640px){
+  .manage-field--span2{ grid-column: span 1; }
+}
+
+.manage-field__tags{
+  display: none;
+}
+
+.manage-card--editing .manage-field__tags{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+/* ---- chip-select fields: click-to-open popover ----
+   Collapsed, a chip field looks and behaves exactly like every other
+   field. In editing mode it becomes a button: clicking it opens a
+   small floating panel with the options, layered on top of the page —
+   nothing below it moves. Selecting (single-select) or hitting Done
+   (multi-select) closes it again. */
+
+.manage-card--editing .manage-field--chip .manage-field__body{
+  cursor: pointer;
+  padding-right: 16px;
+  position: relative;
+  border-radius: 6px;
+}
+
+.manage-card--editing .manage-field--chip .manage-field__body::after{
+  content: "";
+  position: absolute;
+  right: 1px;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.6px solid var(--muted);
+  border-bottom: 1.6px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.manage-field--chip-open .manage-field__body::after{
+  transform: rotate(-135deg);
+  top: 9px;
+}
+
+.manage-field--chip-open{
+  background: rgba(38,38,41,0.92);
+  box-shadow:
+    0 0 0 2px rgba(17,17,17,0.07),
+    inset 0 1px 0 rgba(255,255,255,0.14);
+}
+
+.manage-field__chips{
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1150;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(38,38,41,0.92);
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow:
+    0 20px 44px rgba(0,0,0,0.416),
+    0 2px 10px rgba(0,0,0,0.156);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.manage-field__chips--open{
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.manage-field__chips-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.manage-field__chips-label{
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.manage-field__chips-done{
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill, 999px);
+}
+.manage-field__chips-done:hover{ background: rgba(255,255,255,0.07); }
+
+.manage-field__chips-options{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 1px;
+}
+
+.manage-field__chip{
+  appearance: none;
+  border: 1px solid var(--field-border);
+  background: rgba(38,38,41,0.92);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill, 999px);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.manage-field__chip:hover{
+  border-color: var(--ink);
+  transform: translateY(-1px);
+}
+.manage-field__chip--selected{
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.manage-field__chip--selected:hover{
+  transform: none;
+}
+
+.manage-field__tags{
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.manage-field__tag-list{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.manage-field__tag-list:empty{ display: none; }
+
+.manage-field__tag{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px 5px 12px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--field-bg-editing);
+  border: 1px solid var(--field-border);
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--ink);
+}
+
+.manage-field__tag-remove{
+  appearance: none;
+  border: none;
+  background: rgba(255,255,255,0.09);
+  color: var(--ink);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  padding: 0;
+}
+.manage-field__tag-remove:hover{
+  background: rgba(255,255,255,0.18);
+}
+
+.manage-field__tag-input{
+  width: 100%;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-sm);
+  background: var(--field-bg-editing);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  padding: 8px 10px;
+  outline: none;
+}
+.manage-field__tag-input:focus{
+  border-color: var(--ink);
+}
+
+/* ===========================================================
+   PROFILE TAB — premium "Apple Settings" row redesign
+   -----------------------------------------------------------
+   Everything below is scoped to #tab-profile only, so the
+   Security tab (emails, password, connected accounts,
+   sessions, danger zone) is completely untouched. This layer
+   overrides the boxed/grid field look above with a calm,
+   tappable row list — same markup, same data-* hooks, same
+   JS. No field was added, removed, renamed, or reordered.
+   =========================================================== */
+
+/* Cards no longer carry their own box + margin, so the outer flex
+   gap is retired in favor of each section header's own top margin
+   — that's what actually produces the rhythm between groups now. */
+#tab-profile.manage-section--active{
+  gap: 0;
+}
+
+/* ---- One continuous list, not a stack of separate boxes ----
+   Only the identity block (avatar + name) keeps a distinct glass
+   surface, the way an Apple ID pane sits apart from the grouped
+   list below it. Every other "card" is just a labeled group inside
+   the same continuous scroll — no box, no border, no shadow of its
+   own — so the whole tab reads as one settings list, not seven
+   stacked cards. Grouping comes entirely from the section header
+   + generous vertical rhythm between groups. */
+
+#tab-profile .manage-card{
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+#tab-profile .manage-card[data-card="identity"]{
+  padding: 22px 20px 14px;
+  margin-bottom: 4px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.085);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    0 10px 28px rgba(0,0,0,0.13);
+}
+
+/* Section headers act as quiet landmarks in the scroll, not card
+   captions — they sit flush with the list below them, no box
+   framing them, spaced apart from the previous group. */
+#tab-profile .manage-card__header{
+  margin: 30px 2px 2px;
+}
+
+#tab-profile .manage-card[data-card="identity"] .manage-card__header{
+  margin: 0;
+}
+
+#tab-profile .manage-card[data-card="basic"] .manage-card__header{
+  margin-top: 26px;
+}
+
+#tab-profile .manage-card__title{
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The Identity card's own "Profile" caption is redundant above an
+   avatar + name — Apple's own ID pane never labels itself. Kept in
+   the DOM (not deleted) for screen readers / structure, just not
+   shown visually. */
+.manage-card__title--hidden{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#tab-profile .manage-card__actions .manage-edit-btn{
+  transition: background 0.18s cubic-bezier(.4,0,.2,1), color 0.18s ease, transform 0.12s ease;
+}
+#tab-profile .manage-card__actions .manage-edit-btn:active{ transform: scale(0.96); }
+
+/* ---- Name / bio: natural text, no field box around them ---- */
+
+#tab-profile .manage-profile .manage-field,
+#tab-profile .manage-card > .manage-field--bio{
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+#tab-profile .manage-card--editing .manage-field--name input,
+#tab-profile .manage-card--editing .manage-field--bio textarea{
+  border: none;
+  background: transparent;
+  transition: background 0.16s ease;
+  /* Focus/idle surface treatment lives in the refinement layer
+     below (soft highlight, no border) — kept here as the reset
+     so there's one place that owns "no border, ever". */
+}
+
+/* ---- Grids become a calm, single-column list of rows ---- */
+
+#tab-profile .manage-grid{
+  display: block;
+}
+
+#tab-profile .manage-grid .manage-field{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 2px;
+  margin: 0;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  min-width: 0;
+  cursor: default;
+  transition: background 0.16s ease, padding 0.16s ease;
+}
+
+#tab-profile .manage-grid .manage-field:last-child{
+  border-bottom: none;
+}
+
+/* Rows only invite a tap once the section is in editing mode —
+   before that they're just information, not controls. Hover/
+   active surface treatment (no layout shift) lives in the
+   refinement layer below. */
+
+#tab-profile .manage-field__icon{
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  transition: color 0.16s ease;
+}
+#tab-profile .manage-field__icon svg{ width: 15px; height: 15px; }
+#tab-profile .manage-card--editing .manage-grid .manage-field:hover .manage-field__icon{
+  color: var(--ink);
+}
+
+/* Label left, value elegantly right — wraps onto its own full
+   line only for the fields that need extra room (tag inputs). */
+#tab-profile .manage-grid .manage-field__body{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+#tab-profile .manage-grid .manage-field__label{
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  margin-bottom: 0;
+}
+
+#tab-profile .manage-grid .manage-field__value{
+  flex: 1 1 auto;
+  min-width: 40px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted-2);
+  text-align: right;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+#tab-profile .manage-grid .manage-field__input,
+#tab-profile .manage-grid .manage-field__select{
+  /* flex-grow was 1 here, which stretched the input to fill all
+     remaining row space (up to 220px) regardless of how short its
+     value was. The value text is right-aligned inside that box, so a
+     short value like "Hyderabad" left a visibly disconnected gray
+     rectangle floating to its left the moment it got a background
+     (hover halo or focus tint) — that's the "box" bug. flex-grow: 0
+     plus field-sizing/JS auto-width below make the box hug the text
+     itself, the way a native macOS pop-up button's hover/pressed
+     background hugs its label instead of the whole row. */
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 40px;
+  max-width: 220px;
+  margin-left: auto;
+  text-align: right;
+  font-weight: 400;
+  border: none;
+  animation: profileRowIn 0.2s cubic-bezier(.16,1,.3,1);
+  /* Chrome/Edge 123+: native content-based width, no JS needed.
+     Safari/Firefox fall back to the canvas-measured inline width set
+     by autosizeFieldInput() in index.js. */
+  field-sizing: content;
+  /* Focus surface (soft highlight, no border) lives in the
+     refinement layer below. */
+}
+
+#tab-profile .manage-card--editing .manage-grid .manage-field,
+#tab-profile .manage-card--editing .manage-field--plain .manage-field__body{
+  background: transparent;
+}
+
+@keyframes profileRowIn{
+  from{ opacity: 0; transform: translateY(-3px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Chip-select rows: whole row is the tappable target ---- */
+
+#tab-profile .manage-card--editing .manage-field--chip{
+  cursor: pointer;
+}
+
+#tab-profile .manage-card--editing .manage-field--chip .manage-field__body{
+  padding-right: 14px;
+  position: relative;
+}
+
+#tab-profile .manage-card--editing .manage-field--chip .manage-field__body::after{
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -4px;
+  border-right: 1.6px solid var(--muted);
+  border-bottom: 1.6px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: border-color 0.16s ease;
+}
+#tab-profile .manage-card--editing .manage-field--chip:hover .manage-field__body::after{
+  border-color: var(--ink);
+}
+
+#tab-profile .manage-field--chip-open{
+  background: rgba(255,255,255,0.055);
+  box-shadow: none;
+  border-radius: 10px;
+}
+
+/* Popover: refined, spring-like open/close, sits like a real
+   contextual sheet rather than a plain dropdown. Note: this is
+   reparented onto the overlay root while open (see
+   initChipAndTagFields), so it's scoped by its own class here
+   rather than under #tab-profile — but .manage-field__chips is
+   exclusively used by Profile chip fields, so this still only
+   affects the Profile tab. */
+.manage-field__chips{
+  border-radius: 16px;
+  padding: 10px;
+  /* Every chip picker and the date wheel share this popover. It was still
+     rgba(252,252,251,0.98) from the light theme — a near-white card now
+     holding white text, so each one opened effectively blank. It is hidden
+     until opened, which is why a sweep of the visible page never caught it. */
+  background: rgba(32,32,35,0.96);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow:
+    0 24px 48px rgba(0,0,0,0.416),
+    0 4px 16px rgba(0,0,0,0.156);
+  transform: translateY(-6px) scale(0.97);
+  transform-origin: top left;
+  transition: opacity 0.16s cubic-bezier(.16,1,.3,1), transform 0.16s cubic-bezier(.16,1,.3,1);
+}
+.manage-field__chips--open{
+  transform: translateY(0) scale(1);
+}
+
+.manage-field__chip{
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s cubic-bezier(.16,1,.3,1);
+}
+.manage-field__chip:active{ transform: scale(0.96); }
+.manage-field__chip--selected::before{
+  content: "✓";
+  margin-right: 5px;
+  font-size: 10px;
+}
+
+/* ---- Tag fields: pill list flows onto its own full-width row ---- */
+
+#tab-profile .manage-card--editing .manage-grid .manage-field__tags{
+  flex: 1 1 100%;
+  margin-top: 2px;
+}
+
+#tab-profile .manage-field__tag{
+  background: rgba(255,255,255,0.06);
+  border: none;
+  transition: background 0.15s ease;
+}
+#tab-profile .manage-field__tag:hover{ background: rgba(255,255,255,0.09); }
+
+#tab-profile .manage-field__tag-input{
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.16);
+  border-radius: 0;
+  background: transparent;
+  padding: 6px 0;
+  transition: border-color 0.16s ease;
+}
+#tab-profile .manage-field__tag-input:focus{
+  border-bottom-color: var(--ink);
+}
+
+/* ---- Mobile: rows stay effortless to tap and read ---- */
+@media (max-width: 640px){
+  #tab-profile .manage-grid .manage-field__body{
+    gap: 2px 10px;
+  }
+  #tab-profile .manage-grid .manage-field__input,
+  #tab-profile .manage-grid .manage-field__select{
+    max-width: 55vw;
+  }
+}
+
+/* ---------------------------------------------------------
+   Lists (emails / connected accounts / sessions)
+   --------------------------------------------------------- */
+
+.manage-list{
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 40px 20px;
-  border-radius: var(--radius-xl);
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-border-soft);
-  box-shadow: var(--shadow-card);
-  color: var(--color-text-secondary);
 }
 
-.manage-placeholder__icon {
-  width: 34px; height: 34px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--color-purple-light); color: var(--color-purple-dark);
+.manage-list__row{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--line);
+}
+
+.manage-list__row:last-child{ border-bottom: none; }
+
+.manage-list__icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  color: var(--muted-2);
+}
+
+.manage-list__icon svg{ width: 15px; height: 15px; }
+
+.manage-list__body{
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.manage-list__title{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--ink);
+}
+
+.manage-list__meta{
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.manage-list__value{
+  font-size: 12px;
+  color: var(--muted-2);
+}
+
+.manage-list__actions{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.manage-list__link-btn{
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: var(--ink);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.manage-list__link-btn:hover{ background: rgba(255,255,255,0.05); }
+
+.manage-list__link-btn--danger{
+  color: var(--danger);
+  border-color: var(--danger-line);
+}
+
+.manage-list__link-btn--danger:hover{ background: var(--danger-bg); }
+
+.manage-list__empty{
+  padding: 18px 2px;
+  font-size: 12.5px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* status pills */
+
+.manage-pill{
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  background: rgba(255,255,255,0.07);
+  color: var(--muted-2);
+}
+
+.manage-pill--primary{
+  background: rgba(17,17,17,0.9);
+  color: #fff;
+}
+
+.manage-pill--verified{
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.manage-pill--unverified{
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.manage-pill--current{
+  background: var(--current-bg);
+  color: var(--current);
+}
+
+/* ---------------------------------------------------------
+   Password card
+   --------------------------------------------------------- */
+
+.manage-password-status{
+  font-size: 12.5px;
+  color: var(--muted-2);
+}
+
+.manage-inline-form{
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.085);
+}
+
+.manage-inline-form[hidden]{ display: none; }
+
+.manage-inline-form__row{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.manage-inline-form__input{
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--field-border);
+  background: var(--field-bg);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+}
+
+.manage-inline-form__input:focus{
+  background: rgba(255,255,255,0.1);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.208);
+}
+
+.manage-inline-form__input--code{
+  letter-spacing: 0.3em;
+  text-align: center;
+  font-weight: 650;
+}
+
+.manage-inline-form__hint{
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.manage-inline-form__hint--error{ color: var(--danger); }
+.manage-inline-form__hint--success{ color: var(--success); }
+
+/* ---------------------------------------------------------
+   Password step flow — matches loginpage.css's .field.input-field
+   glass rows + .btn-primary exactly, so Security > Password feels
+   like the same product as the sign-in/sign-up screens. Steps are
+   swapped (not stacked): "current + new" -> "confirm" -> Clerk.
+   --------------------------------------------------------- */
+
+.manage-password-panel{
+  margin-top: 14px;
+}
+
+.manage-password-step[hidden]{ display: none; }
+
+.pw-field{
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
   margin-bottom: 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.085);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.091),
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    inset 0 -1px 0 rgba(0,0,0,0.052),
+    0 1px 2px rgba(0,0,0,0.078);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
-.manage-placeholder__icon svg { width: 17px; height: 17px; }
 
-.manage-placeholder h3 {
-  font-size: 14px; font-weight: 700; color: var(--color-text-primary); margin: 0;
+.pw-field:hover{ background: rgba(255,255,255,0.07); }
+
+.pw-field:focus-within{
+  background: rgba(255,255,255,0.07);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.156),
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    inset 0 -1px 0 rgba(0,0,0,0.052),
+    0 1px 2px rgba(0,0,0,0.078);
 }
-.manage-placeholder p { font-size: 12.5px; margin: 2px 0 0; max-width: 380px; line-height: 1.5; }
+
+.pw-field[hidden]{ display: none; }
+
+.pw-field__icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.pw-field__icon svg{ width: 18px; height: 18px; }
+
+.pw-field__input{
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.pw-field__input::placeholder{ color: #a9a9a5; }
+
+.pw-field__eye{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pw-field__eye svg{ width: 18px; height: 18px; }
+
+.pw-field__eye--active{ color: var(--ink); }
+
+.pw-requirements{
+  list-style: none;
+  margin: 2px 0 12px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.pw-requirements li{
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pw-requirements__item--met{ color: var(--success); }
+
+.pw-match-hint{
+  margin: -2px 0 12px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pw-match-hint--met{ color: var(--success); }
+.pw-match-hint--error{ color: var(--danger); }
+
+/* Stacked Continue/Save + text link, exactly like loginpage.css's
+   .btn-primary + footer link pairing. */
+.pw-actions{
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.pw-btn-primary{
+  width: 100%;
+  height: 38px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: #000000;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.416);
+  font-family: inherit;
+}
+
+.pw-btn-primary:hover{ background: rgba(255,255,255,0.88); }
+.pw-btn-primary:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+.pw-btn-text{
+  width: 100%;
+  height: 34px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pw-btn-text:hover{ background: rgba(255,255,255,0.05); color: var(--ink); }
+
+@keyframes pw-btn-spin{ to{ transform: rotate(360deg); } }
+
+.pw-btn-spinner{
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255,255,255,0.07);
+  border-top-color: #fff;
+  border-radius: 50%;
+  margin-right: 7px;
+  vertical-align: -2px;
+  animation: pw-btn-spin 0.6s linear infinite;
+}
+
+/* ---------------------------------------------------------
+   OAuth field — identical bar to loginpage.html's
+   "Continue with Google" row (#googleBtnSignin): full-width glass
+   field, icon left, centered label, same loading spinner treatment.
+   --------------------------------------------------------- */
+
+.oauth-field{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  margin-top: 12px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.085);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.091),
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    inset 0 -1px 0 rgba(0,0,0,0.052),
+    0 1px 2px rgba(0,0,0,0.078);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.oauth-field:hover{ background: rgba(255,255,255,0.07); }
+
+.oauth-field[hidden]{ display: none; }
+
+.oauth-field__icon{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.oauth-field__icon svg{ width: 16px; height: 16px; }
+
+.oauth-field__label{
+  flex: 1;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Loading state -- same treatment as loginpage.css's .field.is-loading:
+   the provider icon swaps for a small spinner instead of the whole
+   bar dimming or shrinking. */
+.oauth-field.is-loading{ opacity: 0.7; pointer-events: none; }
+
+.oauth-field.is-loading .oauth-field__icon svg{ visibility: hidden; }
+
+.oauth-field.is-loading .oauth-field__icon::after{
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: pw-btn-spin 0.6s linear infinite;
+}
+
+/* Reverification modal — same shell as the photo-crop dialog,
+   just narrower since it's one field. Unlike the photo-crop dialog,
+   the page behind stays crisp (dim only, no blur) -- same treatment
+   as the outer manage-overlay__backdrop. */
+.manage-reverify-modal .manage-photo-modal__card{
+  max-width: 320px;
+}
+
+.manage-reverify-modal .pw-field{ margin-bottom: 10px; }
+
+.manage-reverify-modal .manage-photo-modal__backdrop{
+  background: rgba(20,20,18,0.32);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Password modal & Delete-account modal — same shell + same "dim,
+   never blur" backdrop as the reverify modal above, so Security tab
+   popups (change password, delete account) all feel like one
+   consistent product instead of the old inline-expanding forms that
+   pushed the rest of the page around. */
+.manage-password-modal .manage-photo-modal__backdrop,
+.manage-delete-modal .manage-photo-modal__backdrop{
+  background: rgba(20,20,18,0.32);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.manage-password-modal .manage-photo-modal__card{
+  max-width: 340px;
+}
+
+.manage-password-modal .manage-password-panel{
+  margin-top: 0;
+}
+
+.manage-delete-modal .manage-photo-modal__card{
+  max-width: 380px;
+}
+
+.manage-delete-modal .manage-photo-modal__eyebrow--danger{
+  color: var(--danger);
+}
+
+.manage-delete-modal .manage-inline-form--danger{
+  margin-top: 14px;
+}
+
+.manage-delete-modal .manage-inline-form__row{
+  margin-top: 4px;
+}
+
+/* ---------------------------------------------------------
+   Danger zone
+   --------------------------------------------------------- */
+
+.manage-card--danger{
+  background: var(--danger-bg);
+  border-color: var(--danger-line);
+}
+
+.manage-card--danger .manage-card__title{ color: var(--danger-ink); }
+
+.manage-danger-copy{
+  margin: 0 0 14px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted-2);
+  max-width: 480px;
+}
+
+.manage-danger-btn{
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--danger);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.manage-danger-btn:hover{ background: var(--danger-ink); }
+.manage-danger-btn:disabled{ opacity: 0.55; cursor: wait; }
+
+.manage-inline-form--danger{
+  border-color: var(--danger-line);
+  background: rgba(192,57,43,0.04);
+}
+
+/* ---------------------------------------------------------
+   Photo crop modal
+   --------------------------------------------------------- */
+
+.manage-photo-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(24px, env(safe-area-inset-top, 0px))
+    max(24px, env(safe-area-inset-right, 0px))
+    max(24px, env(safe-area-inset-bottom, 0px))
+    max(24px, env(safe-area-inset-left, 0px));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.manage-photo-modal--open{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.manage-photo-modal__backdrop{
+  position: absolute;
+  inset: 0;
+  background: rgba(20,20,18,0.5);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.manage-photo-modal__card{
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  background: rgba(32,32,35,0.94);
+  border: 1px solid rgba(255,255,255,0.1);
+  -webkit-backdrop-filter: blur(30px) saturate(160%);
+  backdrop-filter: blur(30px) saturate(160%);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.75);
+  transform: scale(0.96);
+  transition: transform 0.2s cubic-bezier(.2,.8,.3,1);
+}
+
+.manage-photo-modal--open .manage-photo-modal__card{ transform: scale(1); }
+
+.manage-photo-modal__header{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.manage-photo-modal__eyebrow{
+  margin: 0 0 2px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.manage-photo-modal__header h3{
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.manage-photo-modal__close{
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.07);
+  color: var(--muted-2);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.manage-photo-modal__close:hover{ background: rgba(255,255,255,0.12); }
+
+.manage-photo-crop__stage{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000000;
+  cursor: grab;
+}
+
+.manage-photo-crop__stage:active{ cursor: grabbing; }
+
+.manage-photo-crop__image{
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
+  transform-origin: 0 0;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.manage-photo-crop__ring{
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2000px rgba(0,0,0,0.75);
+  border: 2px solid rgba(255,255,255,0.1);
+}
+
+.manage-photo-controls{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.manage-photo-controls span{
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted-2);
+}
+
+.manage-photo-controls input[type="range"]{
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.12);
+  outline: none;
+}
+
+.manage-photo-controls input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid rgba(0,0,0,0.55);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.75);
+  cursor: pointer;
+}
+
+.manage-photo-controls input[type="range"]::-moz-range-thumb{
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid rgba(0,0,0,0.55);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.75);
+  cursor: pointer;
+}
+
+.manage-photo-hint{
+  margin: 12px 0 0;
+  font-size: 11.5px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.manage-photo-modal__actions{
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/* ---------------------------------------------------------
+   Scrollbars (nav + content)
+   --------------------------------------------------------- */
+
+.manage-nav::-webkit-scrollbar,
+.manage-content::-webkit-scrollbar{ width: 6px; }
+
+.manage-nav::-webkit-scrollbar-thumb,
+.manage-content::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+}
+
+.manage-nav::-webkit-scrollbar-track,
+.manage-content::-webkit-scrollbar-track{ background: transparent; }
+
+/* The chip/DOB popovers scroll independently (long option lists) —
+   same thin thumb, so nothing in the panel ever shows a bulky
+   native scrollbar. */
+.manage-field__chips-options::-webkit-scrollbar,
+.manage-field__wheel-track::-webkit-scrollbar{ width: 5px; }
+
+.manage-field__chips-options::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+}
+
+.manage-field__chips-options::-webkit-scrollbar-track{ background: transparent; }
+
+.manage-field__chips-options{
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+
+/* ---------------------------------------------------------
+   Focus visibility (accessibility)
+   --------------------------------------------------------- */
+
+.manage-overlay button:focus-visible,
+.manage-overlay input:focus-visible,
+.manage-overlay select:focus-visible,
+.manage-overlay textarea:focus-visible,
+.manage-overlay a:focus-visible{
+  outline: 2px solid rgba(17,17,17,0.55);
+  outline-offset: 2px;
+}
+
+/* Text inputs inside the glass "fields" (password popup, reverify
+   popup, delete-account confirm, email-code confirm) skip the hard
+   accessibility rectangle above -- same as loginpage.css, where
+   .field.input-field input has outline:none and relies on the glass
+   field itself (background/box-shadow) to show focus. Without this,
+   these popups showed a stark black box around the typing bar that
+   the sign-in page never has. */
+.manage-overlay .pw-field__input:focus-visible,
+.manage-overlay .manage-inline-form__input:focus-visible{
+  outline: none;
+}
+
+/* Profile row fields (Name, Bio, and every text/number row in Basic
+   info / Body & fit / Style identity) are a different case again:
+   these are the inline-editable "the row IS the control" fields from
+   the Apple-Settings interaction model, and they already show focus
+   through the row's own soft background halo (see the "Apple Settings
+   refinement" layers below). The hard 2px accessibility rectangle
+   above was never scoped to skip them, so focusing City/Bio/Name
+   etc. was drawing a stark browser-style box right through the
+   no-border design — exactly the "looks like a web form" bug this
+   whole section exists to avoid. Keyboard-focus visibility is still
+   preserved (the halo *is* the focus indicator here), just without
+   the literal rectangle. */
+#tab-profile .manage-field__input:focus-visible,
+#tab-profile .manage-field__select:focus-visible,
+#tab-profile .manage-field__textarea:focus-visible{
+  outline: none;
+}
+
+/* ---------------------------------------------------------
+   Responsive — collapses to a full-screen sheet with a
+   horizontal tab bar, mirroring the login page's single
+   narrow-column layout on small viewports.
+   --------------------------------------------------------- */
+
+@media (max-width: 760px){
+
+  .manage-overlay{ padding: 0; }
+
+  .manage-panel{
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    border-radius: 0;
+  }
+
+  .manage-nav{
+    flex-direction: column;
+    padding: calc(20px + env(safe-area-inset-top, 0px)) 18px 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--nav-line);
+  }
+
+  .manage-nav__subtitle{ margin-bottom: 14px; }
+
+  .manage-tabs{
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .manage-tab{ flex-shrink: 0; }
+
+  .manage-nav__footer{ display: none; }
+
+  .manage-content{
+    padding: 20px 18px calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .manage-panel__close{
+    top: calc(16px + env(safe-area-inset-top, 0px));
+  }
+
+  .manage-grid{ grid-template-columns: 1fr; }
+
+  .manage-password-requirements{ grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px){
+  .manage-profile{ align-items: flex-start; }
+}
+/* ===========================================================
+   PROFILE TAB — Apple Settings refinement layer (v2)
+   -----------------------------------------------------------
+   Additive layer on top of the "premium row redesign" block
+   above. Scoped to #tab-profile / classes exclusive to Profile
+   chip fields, same as before — Security tab, HTML, and JS are
+   untouched. This layer:
+     - turns the chip popover from a wall of pill chips into an
+       Apple-style picker list (label left, checkmark right)
+     - makes Edit / Cancel / Save minimal, text-first controls
+     - makes text-field focus a soft highlight instead of an
+       underline, so nothing reads as a "boxed input"
+     - calms row hover down to an inset halo (no layout shift)
+     - turns the picker into a bottom sheet on narrow screens
+   =========================================================== */
+
+/* ---- Edit / Cancel / Save: minimal, text-first, not pills ---- */
+
+#tab-profile .manage-card__actions .manage-edit-btn{
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+}
+#tab-profile .manage-card__actions .manage-edit-btn:hover{
+  background: rgba(255,255,255,0.055);
+}
+#tab-profile .manage-card__actions .manage-edit-btn--edit svg{
+  display: none;
+}
+#tab-profile .manage-card__actions .manage-edit-btn--edit{
+  padding: 6px 8px;
+}
+#tab-profile .manage-card__actions .manage-edit-btn--cancel{
+  color: var(--muted);
+  font-weight: 500;
+}
+#tab-profile .manage-card__actions .manage-edit-btn--cancel:hover{
+  color: var(--ink);
+  background: rgba(255,255,255,0.055);
+}
+#tab-profile .manage-card__actions .manage-edit-btn--save{
+  background: rgba(255,255,255,0.065);
+  color: var(--ink);
+  font-weight: 600;
+}
+#tab-profile .manage-card__actions .manage-edit-btn--save:hover{
+  background: rgba(255,255,255,0.12);
+}
+
+/* ---- Text-field focus: a soft highlight, not an underline ---- */
+
+#tab-profile .manage-grid .manage-field__input,
+#tab-profile .manage-grid .manage-field__select{
+  border-bottom: none;
+  border-radius: 6px;
+  padding: 3px 6px;
+  margin: -3px -6px -3px auto;
+  transition: background 0.18s ease;
+}
+#tab-profile .manage-grid .manage-field__input:focus,
+#tab-profile .manage-grid .manage-field__select:focus{
+  border-bottom: none;
+  background: rgba(255,255,255,0.055);
+}
+
+#tab-profile .manage-card--editing .manage-field--name input{
+  border-bottom: none;
+  border-radius: 6px;
+  padding: 3px 6px;
+  margin: 0 -6px;
+}
+#tab-profile .manage-card--editing .manage-field--name input:focus{
+  border-bottom: none;
+  background: rgba(255,255,255,0.055);
+}
+#tab-profile .manage-card--editing .manage-field--bio textarea{
+  border-bottom: none;
+  border-radius: 8px;
+  padding: 8px;
+  margin: 0 -8px;
+}
+#tab-profile .manage-card--editing .manage-field--bio textarea:focus{
+  border-bottom: none;
+  background: rgba(255,255,255,0.035);
+}
+
+/* ---- Row hover: an inset halo, never a layout shift ---- */
+
+#tab-profile .manage-card--editing .manage-grid .manage-field:hover{
+  background: transparent;
+  box-shadow: 0 0 0 8px rgba(0,0,0,0.057);
+  border-radius: 10px;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+#tab-profile .manage-card--editing .manage-grid .manage-field:active{
+  box-shadow: 0 0 0 8px rgba(0,0,0,0.104);
+}
+/* Scoped to .manage-grid rows only (Basic info / Body & fit / Style /
+   Lifestyle). Name and bio are NOT inside .manage-grid, so this never
+   touches them — no halo, no box, ever, no matter how the cascade
+   from the generic .manage-field:focus-within rule up top resolves. */
+#tab-profile .manage-grid .manage-field:focus-within{
+  background: transparent;
+  box-shadow: 0 0 0 8px rgba(0,0,0,0.057);
+  border-radius: 10px;
+}
+
+/* ---- Name / bio: truly boxless, Apple-style, even on focus ----
+   No ring, no halo, no background swap — just the caret. This wins
+   the cascade over every earlier .manage-field:focus-within /
+   .manage-card--editing background rule because it's declared last
+   and matches on the more specific --name/--bio classes. */
+#tab-profile .manage-field--name:focus-within,
+#tab-profile .manage-field--bio:focus-within,
+#tab-profile .manage-card--editing .manage-field--name:focus-within,
+#tab-profile .manage-card--editing .manage-field--bio:focus-within{
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+#tab-profile .manage-card--editing .manage-field--name input,
+#tab-profile .manage-card--editing .manage-field--bio textarea{
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+}
+#tab-profile .manage-card--editing .manage-field--name input:focus,
+#tab-profile .manage-card--editing .manage-field--bio textarea:focus{
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* ---- Chip picker: an Apple list, not a wall of pills ---- */
+
+.manage-field__chips-options{
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 1px;
+}
+
+.manage-field__chip{
+  display: block;
+  position: relative;
+  width: 100%;
+  text-align: left;
+  padding: 10px 32px 10px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-weight: 400;
+}
+.manage-field__chip:hover{
+  border-color: transparent;
+  background: rgba(255,255,255,0.055);
+  transform: none;
+}
+.manage-field__chip--selected{
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink);
+  font-weight: 600;
+}
+.manage-field__chip--selected:hover{
+  background: rgba(255,255,255,0.055);
+}
+
+/* Checkmark moves to the right, replacing the earlier inline ✓ */
+.manage-field__chip--selected::before{
+  content: none;
+  margin-right: 0;
+}
+.manage-field__chip--selected::after{
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 5px;
+  height: 9px;
+  margin-top: -6px;
+  border-right: 1.6px solid var(--ink);
+  border-bottom: 1.6px solid var(--ink);
+  transform: rotate(45deg);
+}
+
+.manage-field__chips-done{
+  color: var(--muted);
+}
+.manage-field__chips-done:hover{
+  color: var(--ink);
+  background: rgba(255,255,255,0.055);
+}
+
+/* ---- Date-of-birth field: same trigger affordance as a chip row,
+   opens a scrolling month/day/year wheel instead of a list ---- */
+
+.manage-field--dob .manage-field__body{
+  cursor: pointer;
+  position: relative;
+  padding-right: 16px;
+  border-radius: 6px;
+}
+
+.manage-field--dob .manage-field__body::after{
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -4px;
+  border-right: 1.6px solid var(--muted);
+  border-bottom: 1.6px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.manage-field--dob:hover .manage-field__body::after{
+  border-color: var(--ink);
+}
+
+.manage-field--dob-open .manage-field__body::after{
+  transform: rotate(135deg);
+}
+
+.manage-field--dob-open{
+  background: rgba(255,255,255,0.055);
+  border-radius: 10px;
+}
+
+.manage-field__chips--dob{
+  width: 260px;
+}
+
+.manage-field__dob-wheels{
+  position: relative;
+  display: flex;
+  height: 180px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Selection band fixed in the vertical center, like iOS/macOS pickers */
+.manage-field__dob-wheels::before{
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 50%;
+  height: 36px;
+  margin-top: -18px;
+  background: rgba(255,255,255,0.055);
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Top/bottom fade so items feel like they scroll under a glass rim
+   instead of clipping abruptly */
+.manage-field__dob-wheels::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  /* Fades the ends of the wheel into the sheet behind it. These stops
+     were still #fcfcfb from the light theme, which painted two
+     near-white bands straight across the picker on the dark panel. */
+  background:
+    linear-gradient(to bottom, rgba(28,28,30,0.96) 0%, rgba(28,28,30,0) 32%),
+    linear-gradient(to top,    rgba(28,28,30,0.96) 0%, rgba(28,28,30,0) 32%);
+}
+
+.manage-field__wheel{
+  flex: 1;
+  height: 180px;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  /* Momentum scrolling on trackpads/touch, so the wheel behaves like the
+     iOS control it is imitating rather than a list that stops dead. */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  outline: none;
+}
+.manage-field__wheel::-webkit-scrollbar{ display: none; }
+
+.manage-field__wheel-track{
+  padding: 72px 0;
+}
+
+.manage-field__wheel-item{
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.12s ease, font-weight 0.12s ease;
+  user-select: none;
+}
+
+.manage-field__wheel-item--selected{
+  color: var(--ink);
+  font-weight: 650;
+}
+
+@media (max-width: 640px){
+  .manage-field__chips--dob{ width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .manage-field__wheel{ scroll-behavior: auto; }
+}
+
+/* ---- Narrow screens: the picker becomes a bottom sheet ---- */
+
+@media (max-width: 640px){
+  .manage-field__chips{
+    left: 0 !important;
+    right: 0;
+    top: auto !important;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+    transform: translateY(100%);
+    transform-origin: bottom center;
+  }
+  .manage-field__chips--open{
+    transform: translateY(0);
+  }
+  .manage-field__chips-options{
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+}
+
+/* ===========================================================
+   PROFILE TAB — Apple system refinement layer (v3)
+   -----------------------------------------------------------
+   Final pass: typography hierarchy, checkmark micro-animation,
+   avatar tactility, hit-area/spacing audit, and a proper
+   prefers-reduced-motion mode. Same scoping rules as v1/v2:
+  #tab-profile, plus the .manage-field__chip and .manage-field__chips
+   which belong exclusively to Profile's chip picker. Nothing
+   here touches the Security tab, HTML, or JS data flow.
+
+   Note on consolidation: the border-bottom/underline focus
+   treatment and the padding-shifting row hover that lived in
+   the v1 block were removed there (not just overridden here)
+   since v2 had already fully superseded them — keeping both
+   was dead, conflicting CSS. This layer is additive on top of
+   the now-cleaned v1 + v2 rules, not a third layer fighting
+   them.
+   =========================================================== */
+
+/* ---- Typography hierarchy ---- */
+
+#tab-profile .manage-field--name .manage-field__value{
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+#tab-profile .manage-grid .manage-field__label{
+  color: var(--muted-2);
+  font-weight: 450;
+}
+
+#tab-profile .manage-grid .manage-field__value{
+  font-weight: 400;
+}
+
+#tab-profile .manage-field--chip .manage-field__value[data-chip-value],
+#tab-profile .manage-field--tags .manage-field__value[data-tag-value]{
+  color: var(--muted-2);
+}
+
+/* ---- Chip picker: comfortable hit areas + native checkmark ---- */
+
+.manage-field__chip{
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+/* Checkmark exists (quietly, at opacity 0) on every option so
+   selecting/deselecting animates in place instead of popping. */
+.manage-field__chip::after{
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 5px;
+  height: 9px;
+  margin-top: -6px;
+  border-right: 1.6px solid var(--ink);
+  border-bottom: 1.6px solid var(--ink);
+  transform: rotate(45deg) scale(0.6);
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s cubic-bezier(.34,1.2,.64,1);
+}
+.manage-field__chip--selected::after{
+  opacity: 1;
+  transform: rotate(45deg) scale(1);
+}
+
+/* ---- Picker header/list spacing audit ---- */
+
+.manage-field__chips-header{
+  padding: 2px 10px 8px;
+}
+.manage-field__chips-options{
+  padding: 2px;
+}
+
+/* ---- Avatar: integrated, tactile, not a floating web button ---- */
+
+#tab-profile .manage-avatar{
+  transition: box-shadow 0.18s ease, transform 0.12s ease;
+}
+#tab-profile .manage-avatar:active{
+  transform: scale(0.98);
+}
+#tab-profile .manage-avatar__edit{
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+#tab-profile .manage-avatar__edit:active{
+  transform: scale(0.94);
+}
+
+/* ---- Buttons: consistent, restrained press feedback ---- */
+
+#tab-profile .manage-card__actions .manage-edit-btn:active{
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* ---- Reduced motion: keep state changes, drop the motion ---- */
+
+@media (prefers-reduced-motion: reduce){
+  #tab-profile *,
+  .manage-field__chips,
+  .manage-field__chips *,
+  .manage-photo-modal,
+  .manage-photo-modal *{
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  #tab-profile .manage-card__actions .manage-edit-btn:active,
+  #tab-profile .manage-avatar:active,
+  #tab-profile .manage-avatar__edit:active,
+  .manage-field__chip:active{
+    transform: none;
+  }
+  .manage-field__chips{
+    transform: none;
+  }
+  .manage-field__chip::after{
+    transform: rotate(45deg);
+  }
+  .manage-field__chip--selected::after{
+    transform: rotate(45deg);
+  }
+}
+
+/* ===========================================================
+   EDIT MODE — Apple-native typing & interaction detailing
+   -----------------------------------------------------------
+   Everything above makes edit mode look right at rest. This
+   layer is about how it FEELS the instant you start typing:
+   caret and selection color, no browser-default autofill
+   flash, no ugly number-input spinner, stable digit widths
+   while numbers change, a textarea that grows with you the
+   way Notes/Messages do instead of showing a scrollbar, and a
+   value->input swap that fades/settles instead of popping.
+   Purely additive — no existing selector's behavior is
+   removed, only refined. Scoped to .manage-overlay so it
+   can't leak, and further to #tab-profile where a rule only
+   applies to Profile's editable rows.
+   =========================================================== */
+
+/* ---- Caret + text selection: system-native, not browser-blue ---- */
+
+.manage-overlay input,
+.manage-overlay textarea{
+  caret-color: var(--ink);
+}
+
+.manage-overlay input::selection,
+.manage-overlay textarea::selection{
+  background: rgba(17,17,17,0.16);
+  color: var(--ink);
+}
+
+/* ---- Placeholders: quiet, never competing with real values ---- */
+
+.manage-overlay input::placeholder,
+.manage-overlay textarea::placeholder{
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+/* ---- Autofill: kill the yellow/blue browser flash ----
+   Chrome/Safari paint a hard background the instant a field is
+   autofilled, which reads as a bug in a glass UI. The 9999s
+   transition delay is the standard trick to suppress it without
+   fighting the browser on every keystroke. */
+
+.manage-overlay input:-webkit-autofill,
+.manage-overlay input:-webkit-autofill:hover,
+.manage-overlay input:-webkit-autofill:focus{
+  -webkit-text-fill-color: var(--ink);
+  transition: background-color 9999s ease-in-out 0s, color 9999s ease-in-out 0s;
+  caret-color: var(--ink);
+}
+
+/* ---- Number fields: no native spinner, stable digit width ----
+   Apple never shows the up/down spinner on a plain numeric
+   Settings row, and digits keep a fixed width while you type so
+   nothing reflows mid-keystroke. */
+
+.manage-field__input[type="number"]{
+  appearance: textfield;
+  -moz-appearance: textfield;
+  font-variant-numeric: tabular-nums;
+}
+
+.manage-field__input[type="number"]::-webkit-outer-spin-button,
+.manage-field__input[type="number"]::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ---- Value -> input swap: settles into place, doesn't pop ----
+   The base rule elsewhere just toggles display:none/block. Adding
+   the entrance here (rather than replacing that rule) means older
+   browsers without support for this simply keep the instant swap —
+   never a broken state. */
+
+.manage-card--editing .manage-field__input,
+.manage-card--editing .manage-field__select,
+.manage-card--editing .manage-field__textarea{
+  animation: editValueIn 0.18s cubic-bezier(.16,1,.3,1);
+}
+
+@keyframes editValueIn{
+  from{ opacity: 0; transform: translateY(-2px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Card entering/leaving edit: a soft settle, not a hard cut ---- */
+
+.manage-card{
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* ---- Bio textarea: grows with you like Notes, no manual drag-resize ---- */
+
+#tab-profile .manage-card--editing .manage-field--bio textarea{
+  resize: none;
+  overflow: hidden;
+  transition: height 0.12s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+/* ---- Reduced motion: keep the state changes, drop the settle-in ---- */
+
+/* ===========================================================
+   PROFILE TAB — always-live rows (no per-card Edit/Save gate)
+   -----------------------------------------------------------
+   Everything above was written assuming `.manage-card--editing`
+   only ever appeared while a card was mid-edit; index.js now
+   applies it permanently to every Profile card instead (see
+   initInlineRowEditing) so every row is interactive without an
+   "Edit profile" step. Only one thing that relied on the old
+   on/off behavior needs correcting here: the blanket
+   `.manage-card--editing .manage-field__value{ display:none }`
+   rule above was written for text/number fields (whose value is
+   replaced by their <input>) and would otherwise also hide the
+   chip/tag "current value" label (e.g. "Male", "Athletic") that
+   sits to the left of the chevron — those still need to show.
+   =========================================================== */
+
+#tab-profile .manage-card--editing .manage-field--chip .manage-field__value,
+#tab-profile .manage-card--editing .manage-field--tags .manage-field__value{
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .manage-card--editing .manage-field__input,
+  .manage-card--editing .manage-field__select,
+  .manage-card--editing .manage-field__textarea{
+    animation: none;
+  }
+}
+/* ==========================================================================
+   PROFILE STRENGTH
+   ==========================================================================
+   Added with js/manageaccount/profile-insights.js.
+
+   Built as a Settings group, not a dashboard card: a labelled row carrying
+   its value, a hairline rule, and one more row that behaves like every
+   other row in the list. No headline, no explanatory prose, no colour —
+   Settings does not tell you what a section is for.
+   ========================================================================== */
+
+.manage-overlay .profile-strength{
+  margin: 0 0 26px;
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.045);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.manage-overlay .profile-strength__row{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px 10px;
+}
+
+.manage-overlay .profile-strength__label{
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.manage-overlay .profile-strength__value{
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.manage-overlay .profile-strength__track{
+  height: 2px;
+  margin: 0 14px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.10);
+  overflow: hidden;
+}
+
+.manage-overlay .profile-strength__fill{
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: #ffffff;
+  transition: width 0.45s cubic-bezier(0.22,0.61,0.24,1);
+}
+
+.manage-overlay .profile-strength--complete .profile-strength__fill{
+  background: var(--success);
+}
+
+/* The next-step row: same height, padding and chevron as any other row in
+   the tab, because it is a row — not a call to action. */
+.manage-overlay .profile-strength__next{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s cubic-bezier(0.4,0,0.2,1);
+}
+
+.manage-overlay .profile-strength__next:hover{ background: rgba(255,255,255,0.05); }
+.manage-overlay .profile-strength__next:active{ background: rgba(255,255,255,0.08); }
+.manage-overlay .profile-strength__next[hidden]{ display: none; }
+.manage-overlay .profile-strength__next svg{ color: var(--muted-2); flex-shrink: 0; }
+
+/* --- An unanswered row reads as somewhere to go -------------------------- */
+
+.manage-overlay .manage-field--empty .manage-field__value{
+  color: rgba(235,235,245,0.45);
+}
+
+.manage-overlay .manage-field--empty:hover .manage-field__value{
+  color: var(--ink);
+}
+
+.manage-overlay .manage-field--spotlight{
+  animation: ps-spotlight 1.5s cubic-bezier(0.22,0.61,0.24,1);
+}
+
+@keyframes ps-spotlight{
+  0%   { background: rgba(255,255,255,0.10); }
+  100% { background: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .manage-overlay .profile-strength__fill{ transition: none; }
+  .manage-overlay .manage-field--spotlight{ animation: none; }
+}
 
 /* ==========================================================================
-   RESPONSIVE
-   Mirrors the .sidebar width/layout breakpoints in responsive.css so the
-   overlay's left inset always clears the sidebar, whatever size it is.
+   POP-UP MENUS — the macOS pop-up button, not a floating card
+   ==========================================================================
+   A single-choice row in System Settings opens a compact menu tight to the
+   control: no title, no pills, one line per option, a checkmark against the
+   current one. What was here instead was a wide card with an uppercase
+   heading and a wrapped grid of pill buttons — a different control
+   entirely, and one that covered the rows underneath it.
+
+   Scoped to single-select groups. Multi-select and tag fields keep the pill
+   layout, which is the right control for "choose several".
    ========================================================================== */
-@media (max-width: 1536px) {
-  .manage-overlay { --panel-inset-left: calc(195px + 28px); }
+
+.manage-overlay .manage-field__chips:has([data-chip-mode="single"]),
+.manage-overlay .manage-field__chips[data-chip-mode="single"]{
+  min-width: 0;
+  width: max-content;
+  min-width: 168px;
+  max-width: 280px;
+  padding: 5px;
+  border-radius: 10px;
+  background: rgba(44,44,46,0.98);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow:
+    0 0 0 0.5px rgba(0,0,0,0.6),
+    0 12px 32px rgba(0,0,0,0.55);
 }
 
-@media (max-width: 1200px) {
-  .manage-overlay { --panel-inset-left: calc(190px + 24px); }
+/* No heading. A pop-up menu never labels itself — the row it came from
+   already did. */
+.manage-overlay .manage-field__chips[data-chip-mode="single"] .manage-field__chips-header,
+.manage-overlay .manage-field__chips:has([data-chip-mode="single"]) .manage-field__chips-header{
+  display: none;
 }
 
-/* Sidebar switches to a horizontal top bar here (see responsive.css),
-   so the overlay switches from a left inset to a top inset instead. */
-@media (max-width: 1024px) {
-  .manage-overlay {
-    padding: 92px 12px 12px;
-  }
-  .manage-panel { flex-direction: column; }
-  .manage-nav {
-    width: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--color-border-soft);
-    padding: 26px 20px 16px;
-  }
-  .manage-tabs { flex-direction: row; overflow-x: auto; gap: 4px; }
-  .manage-tab { flex-shrink: 0; }
-  .manage-nav__footer { display: none; }
+.manage-overlay .manage-field__chips[data-chip-mode="single"] .manage-field__chips-options,
+.manage-overlay .manage-field__chips:has([data-chip-mode="single"]) .manage-field__chips-options,
+.manage-overlay [data-chip-group][data-chip-mode="single"]{
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0;
+  max-height: 320px;
+  padding: 0;
 }
 
-@media (max-width: 640px) {
-  .manage-overlay { padding: 84px 8px 8px; }
-  .manage-content { padding: 22px 16px 30px; }
-  .manage-grid { grid-template-columns: 1fr 1fr; }
-  .manage-profile { flex-wrap: wrap; }
+/* Menu item: full width, checkmark gutter, 24px row — Apple's metrics. */
+.manage-overlay [data-chip-group][data-chip-mode="single"] .manage-field__chip{
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 26px;
+  padding: 4px 26px 4px 11px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-align: left;
+  transform: none;
+  transition: background 0.06s linear;
 }
 
-@media (max-width: 420px) {
-  .manage-grid { grid-template-columns: 1fr; }
+.manage-overlay [data-chip-group][data-chip-mode="single"] .manage-field__chip:hover{
+  background: var(--current);      /* systemBlue, the way a menu highlights */
+  border: none;
+  color: #ffffff;
+  transform: none;
 }
+
+.manage-overlay [data-chip-group][data-chip-mode="single"] .manage-field__chip--selected{
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.manage-overlay [data-chip-group][data-chip-mode="single"] .manage-field__chip--selected:hover{
+  background: var(--current);
+  color: #ffffff;
+}
+
+/* No checkmark of our own — the stylesheet already carries one on the
+   right that fades between options. Reserve room for it so a long label
+   never runs underneath. */
+.manage-overlay [data-chip-group][data-chip-mode="single"] .manage-field__chip::after{
+  right: 9px;
+}
+.manage-overlay [data-chip-group][data-chip-mode="single"] .manage-field__chip:hover::after{
+  border-color: #ffffff;
+}
+
+/* ==========================================================================
+   DATE PICKER — sized to sit beside its row, not across the panel
+   ========================================================================== */
+
+.manage-overlay .manage-field__chips--dob{
+  width: max-content;
+  min-width: 232px;
+  padding: 6px;
+  border-radius: 10px;
+  background: rgba(44,44,46,0.98);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow:
+    0 0 0 0.5px rgba(0,0,0,0.6),
+    0 12px 32px rgba(0,0,0,0.55);
+}
+
+.manage-overlay .manage-field__chips--dob .manage-field__chips-header{
+  padding: 2px 6px 6px;
+  border-bottom: none;
+}
+
+.manage-overlay .manage-field__dob-wheels{
+  height: 148px;
+  border-radius: 8px;
+}
+
+.manage-overlay .manage-field__wheel{ height: 148px; }
+
+/* Centre band and the padding that lands an item inside it both follow the
+   shorter wheel: (148 - 32) / 2 = 58. */
+.manage-overlay .manage-field__dob-wheels::before{
+  height: 32px;
+  margin-top: -16px;
+  left: 3px;
+  right: 3px;
+  border-radius: 6px;
+}
+
+.manage-overlay .manage-field__wheel-track{ padding: 58px 0; }
+.manage-overlay .manage-field__wheel-item{ height: 32px; font-size: 13px; }
+
+.manage-overlay .manage-field__dob-wheels::after{
+  background:
+    linear-gradient(to bottom, rgba(44,44,46,0.98) 0%, rgba(44,44,46,0) 34%),
+    linear-gradient(to top,    rgba(44,44,46,0.98) 0%, rgba(44,44,46,0) 34%);
+}
+
+/* ==========================================================================
+   SIDEBAR — System Settings
+   ==========================================================================
+   Added with js/manageaccount/settings-nav.js. Search at the top, every
+   category listed below it, one shown at a time in the detail pane.
+   ========================================================================== */
+
+.manage-overlay .manage-tabs--hidden{ display: none; }
+
+.manage-overlay .manage-nav--settings{
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.manage-overlay .manage-nav--settings .manage-nav__title{ font-size: 15px; margin-bottom: 2px; }
+.manage-overlay .manage-nav--settings .manage-nav__subtitle{ display: none; }
+.manage-overlay .manage-nav--settings .manage-nav__footer{ display: none; }
+
+.manage-overlay .settings-nav{
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  margin-top: 12px;
+}
+
+/* --- Search --------------------------------------------------------------- */
+
+.manage-overlay .settings-search{
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  margin: 0 6px 10px;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.07);
+  color: var(--muted-2);
+}
+
+.manage-overlay .settings-search svg{ flex-shrink: 0; }
+
+.manage-overlay .settings-search__input{
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.manage-overlay .settings-search__input::placeholder{ color: var(--muted-2); }
+.manage-overlay .settings-search__input::-webkit-search-cancel-button{ display: none; }
+
+/* --- List ----------------------------------------------------------------- */
+
+.manage-overlay .settings-list{
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 6px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.14) transparent;
+}
+
+.manage-overlay .settings-list__divider{
+  height: 1px;
+  margin: 7px 8px;
+  background: var(--line);
+}
+
+.manage-overlay .settings-item{
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 30px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s cubic-bezier(0.4,0,0.2,1);
+}
+
+.manage-overlay .settings-item:hover{ background: rgba(255,255,255,0.06); }
+
+/* Selected row is a filled blue capsule — Settings' own selection style. */
+.manage-overlay .settings-item--active,
+.manage-overlay .settings-item--active:hover{
+  background: var(--current);
+  color: #ffffff;
+}
+
+.manage-overlay .settings-item__icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: currentColor;
+  opacity: 0.9;
+}
+.manage-overlay .settings-item__icon svg{ width: 15px; height: 15px; }
+
+.manage-overlay .settings-item__text{
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.manage-overlay .settings-item__label{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manage-overlay .settings-item__sub{
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.manage-overlay .settings-item--active .settings-item__sub{ color: rgba(255,255,255,0.75); }
+
+/* The account row is taller and carries the avatar, the way the Apple
+   Account row sits above everything else in System Settings. */
+.manage-overlay .settings-item--account{
+  min-height: 46px;
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
+.manage-overlay .settings-item__avatar{
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.12);
+}
+.manage-overlay .settings-item__avatar img{ width: 100%; height: 100%; object-fit: cover; }
+
+/* How many answers a category is still missing. */
+.manage-overlay .settings-item__count{
+  display: none;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.14);
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 550;
+  line-height: 17px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.manage-overlay .settings-item__count--visible{ display: block; }
+.manage-overlay .settings-item--active .settings-item__count{
+  background: rgba(255,255,255,0.26);
+  color: #ffffff;
+}
+
+/* --- Search results ------------------------------------------------------- */
+
+.manage-overlay .settings-results{ display: flex; flex-direction: column; }
+.manage-overlay .settings-results[hidden]{ display: none; }
+
+.manage-overlay .settings-result{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  padding: 11px 2px;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s cubic-bezier(0.4,0,0.2,1);
+}
+.manage-overlay .settings-result:hover{ background: rgba(255,255,255,0.05); }
+.manage-overlay .settings-result__where{ font-size: 12px; color: var(--muted-2); flex-shrink: 0; }
+
+.manage-overlay .settings-results__empty{
+  padding: 24px 2px;
+  font-size: 13px;
+  color: var(--muted-2);
+  text-align: center;
+}
+
+/* A single category on screen no longer needs its own heading repeated —
+   the sidebar already says which one you are in. */
+.manage-overlay #tab-profile .manage-card[hidden]{ display: none; }

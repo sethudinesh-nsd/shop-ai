@@ -72,6 +72,12 @@ async function respondToChat(req, res) {
     const history = compactHistory(Array.isArray(payload.history) ? payload.history : []);
     const images = Array.isArray(payload.images) ? payload.images : [];
     const userMessage = (payload.message || '').toString();
+    // Style profile for this user, sent by js/profile.js. Plain object or
+    // nothing — styleBrief.js sanitises every value before it reaches the model.
+    const profile =
+      payload.profile && typeof payload.profile === 'object' && !Array.isArray(payload.profile)
+        ? payload.profile
+        : null;
 
     let result;
     try {
@@ -108,6 +114,12 @@ async function respondToChatStream(req, res) {
     const history = compactHistory(Array.isArray(payload.history) ? payload.history : []);
     const images = Array.isArray(payload.images) ? payload.images : [];
     const userMessage = (payload.message || '').toString();
+    // Style profile for this user, sent by js/profile.js. Plain object or
+    // nothing — styleBrief.js sanitises every value before it reaches the model.
+    const profile =
+      payload.profile && typeof payload.profile === 'object' && !Array.isArray(payload.profile)
+        ? payload.profile
+        : null;
 
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -123,7 +135,7 @@ async function respondToChatStream(req, res) {
     res.write(': connected\n\n');
 
     try {
-      const messages = await agent.buildMessages(userMessage, history, images);
+      const messages = await agent.buildMessages(userMessage, history, images, profile);
 
       await chatStream(messages, chunk => {
         res.write(`data: ${JSON.stringify({ chunk })}\n\n`);

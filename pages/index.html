@@ -5,55 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Shop AI — Home</title>
 
-  <!-- Fonts -->
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#000000" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,400;1,400;1,500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&display=swap"
     rel="stylesheet"
   />
 
-  <!-- Syntax highlighting theme (token colors only — background/spacing are overridden by style.css) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css" />
 
   <link rel="stylesheet" href="../css/style.css?v=9" />
   <link rel="stylesheet" href="../css/responsive.css?v=9" />
-  <link rel="stylesheet" href="../css/manageaccount/index.css?v=1" />
+  <link rel="stylesheet" href="../css/manageaccount/index.css?v=2" />
 
-  <!-- Markdown parsing (marked), HTML sanitization (DOMPurify), syntax highlighting (highlight.js).
-       Served from jsDelivr (mirrors npm directly) rather than cdnjs, which only
-       mirrors a curated subset of versions and can 404 on an exact pin. -->
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.5/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
 </head>
 <body>
-  <!-- Hidden until app.js confirms a Clerk session exists, so a signed-out
-       visitor never sees a flash of Home before being redirected. -->
   <script>document.documentElement.style.visibility = 'hidden';</script>
 
   <div class="app">
-    <!-- ============================== -->
-    <!-- SIDEBAR                        -->
-    <!-- ============================== -->
     <aside class="sidebar">
       <div class="sidebar__brand">
         <span class="brand-icon">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-            <path d="M12 2 L14 9 L21 11 L14 13 L12 20 L10 13 L3 11 L10 9 Z" fill="url(#sparkleGrad)"/>
-            <defs>
-              <linearGradient id="sparkleGrad" x1="3" y1="2" x2="21" y2="20" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#a855f7"/>
-                <stop offset="1" stop-color="#7c3aed"/>
-              </linearGradient>
-            </defs>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M12 2 L14 9 L21 11 L14 13 L12 20 L10 13 L3 11 L10 9 Z"/>
           </svg>
         </span>
-        <span class="brand-name">Shop AI</span>
+        <span class="brand-text">
+          <span class="brand-name">Shop AI</span>
+        </span>
       </div>
 
       <nav class="sidebar__nav">
-        <a href="#" class="nav-item nav-item--active" data-nav="home">
+        <a href="index.html" class="nav-item nav-item--active" data-nav="home">
           <span class="nav-icon">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 10.5 12 3l9 7.5"/>
@@ -74,7 +63,7 @@
           </span>
           <span class="nav-label">Wardrobe</span>
         </a>
-<a href="#" class="nav-item" data-nav="history">
+<a href="history.html" class="nav-item" data-nav="history">
           <span class="nav-icon">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 12a9 9 0 1 0 3-6.7"/>
@@ -88,7 +77,7 @@
 
       <div class="sidebar__user">
         <div class="user-avatar">
-          <img src="../assets/images/avatar.jpg" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('user-avatar--fallback')" />
+          <img alt="" onerror="this.style.display='none'; this.parentElement.classList.add('user-avatar--fallback')" />
         </div>
         <div class="user-meta">
           <span class="user-name">Account</span>
@@ -103,7 +92,7 @@
       <div class="profile-menu" id="profileMenu" aria-hidden="true">
         <div class="profile-menu__identity">
           <div class="profile-menu__avatar user-avatar user-avatar--small">
-            <img src="../assets/images/avatar.jpg" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('user-avatar--fallback')" />
+            <img alt="" onerror="this.style.display='none'; this.parentElement.classList.add('user-avatar--fallback')" />
           </div>
           <div class="profile-menu__identity-text">
             <span class="profile-menu__name">Account</span>
@@ -122,45 +111,27 @@
       </div>
     </aside>
 
-    <!-- ============================== -->
-    <!-- MAIN CONTENT                   -->
-    <!-- ============================== -->
     <main class="main">
-      <header class="topbar">
-      </header>
+      <header class="topbar"></header>
 
       <section class="hero" id="hero">
-        <!-- Greeting + title: fades out on first message -->
         <div class="hero__intro" id="heroIntro">
-          <p class="hero__greeting">Good afternoon, <span class="hero__name">there</span> <span class="hero__wave">👋</span></p>
-          <p class="hero__voice">Let's find something that feels like you.</p>
-          <h1 class="hero__title">What are you looking to wear today?</h1>
+          <h1 class="hero__title"><span class="hero__salutation">Good evening</span>, <span class="hero__name">there</span></h1>
+          <p class="hero__voice">What are you looking to wear today?</p>
 
           <div class="hero__suggestions" id="heroSuggestions">
-            <button class="suggestion-chip" data-prompt="Suggest a college outfit under ₹3000">
-              <span class="suggestion-chip__icon">👔</span> College Outfit
-            </button>
-            <button class="suggestion-chip" data-prompt="Analyze my outfit photo">
-              <span class="suggestion-chip__icon">🖼️</span> Analyze Photo
-            </button>
-            <button class="suggestion-chip" data-prompt="Suggest a wedding function look">
-              <span class="suggestion-chip__icon">🤵</span> Wedding Look
-            </button>
-            <button class="suggestion-chip" data-prompt="What's trending this week?">
-              <span class="suggestion-chip__icon">📈</span> Trending Styles
-            </button>
+            <button class="suggestion-chip" data-prompt="Suggest a college outfit under ₹3000">College Outfit</button>
+            <button class="suggestion-chip" data-prompt="Analyze my outfit photo">Analyze Photo</button>
+            <button class="suggestion-chip" data-prompt="Suggest a wedding function look">Wedding Look</button>
+            <button class="suggestion-chip" data-prompt="What's trending this week?">Trending Styles</button>
           </div>
         </div>
 
-        <!-- Chat thread: hidden until the first message is sent -->
         <div class="hero__chat-scroll" id="chatScroll">
           <div class="hero__chat" id="chatMessages" aria-live="polite"></div>
         </div>
 
-        <!-- Search bar: identical markup/design, wrapper only controls position -->
         <div class="searchbar-wrapper" id="searchbarWrapper">
-          <!-- Attachment previews for images picked but not yet sent. Hidden
-               (and empty) whenever pendingImages is empty — see script.js. -->
           <div class="attachments-row" id="attachmentsRow" hidden></div>
           <div class="searchbar">
             <button class="searchbar__icon-btn" aria-label="Add photo" id="uploadBtn" title="Add photo">
@@ -171,7 +142,7 @@
             <input type="file" id="fileInput" accept="image/*" multiple hidden />
             <textarea
               class="searchbar__input"
-              placeholder="Describe your look, occasion or paste a link..."
+              placeholder="Describe a look, an occasion, or paste a link…"
               id="searchInput"
               rows="1"
             ></textarea>
@@ -188,12 +159,12 @@
               </svg>
             </button>
           </div>
+          <p class="composer-note">Shop AI suggests — you decide. Check details before you buy.</p>
         </div>
       </section>
 </main>
   </div>
 
-  <!-- Modern ChatGPT-style message template (cloned by script.js, never shown directly) -->
   <template id="messageTemplate">
     <div class="message">
       <div class="message__label">
@@ -202,8 +173,8 @@
             <path d="M12 2 L14 9 L21 11 L14 13 L12 20 L10 13 L3 11 L10 9 Z" fill="url(#msgSparkleGrad)"/>
             <defs>
               <linearGradient id="msgSparkleGrad" x1="3" y1="2" x2="21" y2="20" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#a855f7"/>
-                <stop offset="1" stop-color="#7c3aed"/>
+                <stop stop-color="#f0d9a8"/>
+                <stop offset="1" stop-color="#b3874a"/>
               </linearGradient>
             </defs>
           </svg>
@@ -240,10 +211,64 @@
     </div>
   </template>
 
-
   <script src="../js/auth.js"></script>
+  <script src="../js/profile.js"></script>
+  <script src="../js/supabaseClient.js"></script>
   <script src="../js/app.js" defer></script>
-  <script src="../js/manageaccount/index.js" defer></script>
+  <script src="../js/manageaccount/index.js?v=2" defer></script>
+  <script src="../js/manageaccount/profile-insights.js?v=2" defer></script>
+  <script src="../js/manageaccount/settings-nav.js?v=2" defer></script>
   <script src="../js/script.js"></script>
+
+  <script>
+    // Liquid Glass sheen. The highlight tracks the pointer across the
+    // composer the way a reflection slides over a lens as it tilts.
+    // Coordinates are written as CSS variables and read by the ::after
+    // layer, so painting stays on the compositor and no layout is touched.
+    // Skipped for coarse pointers and reduced-motion.
+    (function () {
+      if (!window.matchMedia('(pointer: fine)').matches) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      var bar = document.querySelector('.searchbar');
+      if (!bar) return;
+
+      var frame = null;
+      bar.addEventListener('pointermove', function (e) {
+        if (frame) return;
+        frame = requestAnimationFrame(function () {
+          frame = null;
+          var r = bar.getBoundingClientRect();
+          bar.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+          bar.style.setProperty('--my', (e.clientY - r.top) + 'px');
+        });
+      });
+      bar.addEventListener('pointerleave', function () {
+        bar.style.removeProperty('--mx');
+        bar.style.removeProperty('--my');
+      });
+    })();
+  </script>
+
+  <script>
+    // The salutation was hardcoded to "Good afternoon" — it now follows the
+    // clock, and re-checks on tab focus so a session left open overnight
+    // isn't still greeting you from yesterday. Isolated; no-ops if absent.
+    (function () {
+      var el = document.querySelector('.hero__salutation');
+      if (!el) return;
+      function salutation() {
+        var h = new Date().getHours();
+        if (h < 12) return 'Good morning';
+        if (h < 17) return 'Good afternoon';
+        return 'Good evening';
+      }
+      function apply() { el.textContent = salutation(); }
+      apply();
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) apply();
+      });
+    })();
+  </script>
 </body>
 </html>
